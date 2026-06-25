@@ -1,0 +1,19 @@
+{
+  "name": "puku-puku-crm-frontend",
+  "version": "1.0.0",
+  "description": "Panel de Atención Unificado — Puku Puku (3 pantallas del prototipo APF2)",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.1"
+  }
+}

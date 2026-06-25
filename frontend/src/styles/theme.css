@@ -1,0 +1,482 @@
+/* =================================================================
+   PUKU PUKU — Token system
+   Paleta tomada de la identidad ya validada en los mockups del APF2
+   (marrón cafetero + terracota + crema). Tipografía: Fraunces para
+   titulares (carácter editorial/cafetería), Work Sans para texto e
+   interfaz (alta legibilidad en pantalla de trabajo).
+   ================================================================= */
+
+:root {
+  /* Color */
+  --color-cream: #faf3ea;
+  --color-sand: #efe3d3;
+  --color-brown-900: #2e1b0f;
+  --color-brown-700: #5b3a21;
+  --color-terracotta: #c1502e;
+  --color-terracotta-dark: #9c3d22;
+  --color-white: #ffffff;
+  --color-success: #4f7942;
+  --color-warning: #c98a2e;
+  --color-danger: #b3261e;
+
+  /* Tipografía */
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Work Sans', -apple-system, sans-serif;
+
+  /* Layout */
+  --radius-card: 14px;
+  --radius-pill: 999px;
+  --shadow-card: 0 2px 10px rgba(46, 27, 15, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--color-cream);
+  color: var(--color-brown-900);
+}
+
+button {
+  font-family: var(--font-body);
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--color-terracotta);
+  outline-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Navbar --- */
+.navbar {
+  background: var(--color-brown-900);
+  color: var(--color-cream);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.navbar .marca {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.navbar .bird {
+  color: var(--color-terracotta);
+  font-size: 1.1rem;
+}
+
+.navbar nav {
+  display: flex;
+  gap: 6px;
+}
+
+.navbar nav button {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-cream);
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.92rem;
+  transition: background 0.15s ease;
+}
+
+.navbar nav button.activo {
+  background: var(--color-terracotta);
+  font-weight: 600;
+}
+
+.navbar nav button:hover:not(.activo) {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.navbar .sesion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.navbar .sesion button {
+  background: transparent;
+  border: 1px solid rgba(250, 243, 234, 0.4);
+  color: var(--color-cream);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+}
+
+/* --- Contenedor general --- */
+.contenido {
+  flex: 1;
+  padding: 28px;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+h1.titulo-pantalla {
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  margin: 0 0 4px;
+}
+
+p.subtitulo-pantalla {
+  color: var(--color-brown-700);
+  margin: 0 0 24px;
+}
+
+/* --- Tarjetas --- */
+.card {
+  background: var(--color-white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 22px;
+}
+
+.card + .card {
+  margin-top: 18px;
+}
+
+/* --- Formularios --- */
+.campo {
+  margin-bottom: 16px;
+}
+
+.campo label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-brown-700);
+  margin-bottom: 6px;
+}
+
+.campo input,
+.campo textarea,
+.campo select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--color-sand);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  background: var(--color-cream);
+  color: var(--color-brown-900);
+}
+
+.canal-selector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.canal-selector button {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-sand);
+  background: var(--color-cream);
+  font-size: 0.85rem;
+  color: var(--color-brown-700);
+}
+
+.canal-selector button.seleccionado {
+  background: var(--color-terracotta);
+  border-color: var(--color-terracotta);
+  color: var(--color-white);
+  font-weight: 600;
+}
+
+.consentimiento {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--color-sand);
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+}
+
+.btn-principal {
+  background: var(--color-terracotta);
+  color: var(--color-white);
+  border: none;
+  padding: 11px 22px;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.btn-principal:hover {
+  background: var(--color-terracotta-dark);
+}
+
+.btn-principal:disabled {
+  background: #d8c7b8;
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.btn-secundario {
+  background: transparent;
+  border: 1px solid var(--color-brown-700);
+  color: var(--color-brown-700);
+  padding: 10px 20px;
+  border-radius: var(--radius-pill);
+  font-size: 0.95rem;
+}
+
+.error-msg {
+  background: #fbeae8;
+  color: var(--color-danger);
+  border: 1px solid #f0b8b3;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  margin-bottom: 14px;
+}
+
+/* --- Búsqueda y resultados --- */
+.busqueda-input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--color-sand);
+  font-size: 1rem;
+  background: var(--color-white);
+  box-shadow: var(--shadow-card);
+}
+
+.resultado-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-sand);
+  cursor: pointer;
+}
+
+.resultado-item:hover {
+  background: var(--color-sand);
+}
+
+/* --- Tarjeta de cliente (Pantalla 2) --- */
+.layout-cliente {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 760px) {
+  .layout-cliente {
+    grid-template-columns: 1fr;
+  }
+}
+
+.avatar-circulo {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--color-terracotta);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.etiqueta-canal {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-sand);
+  color: var(--color-brown-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.metricas-rapidas {
+  display: flex;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.metrica {
+  flex: 1;
+  text-align: center;
+  background: var(--color-cream);
+  border-radius: 10px;
+  padding: 10px 6px;
+}
+
+.metrica .valor {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-terracotta);
+}
+
+.metrica .etiqueta {
+  font-size: 0.7rem;
+  color: var(--color-brown-700);
+  text-transform: uppercase;
+}
+
+.feed-item {
+  border-bottom: 1px solid var(--color-sand);
+  padding: 14px 0;
+}
+
+.feed-item:last-child {
+  border-bottom: none;
+}
+
+.feed-item .fila-superior {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 4px;
+}
+
+.estado-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.estado-badge.RESUELTO {
+  background: #e3efdf;
+  color: var(--color-success);
+}
+
+.estado-badge.EN_SEGUIMIENTO {
+  background: #fbe9d2;
+  color: var(--color-warning);
+}
+
+.estado-badge.PENDIENTE {
+  background: #f3e1e0;
+  color: var(--color-danger);
+}
+
+/* --- Modal Pantalla 3 --- */
+.overlay-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(46, 27, 15, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.modal-cierre {
+  background: var(--color-white);
+  border-radius: var(--radius-card);
+  padding: 26px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.iconos-satisfaccion {
+  display: flex;
+  gap: 12px;
+}
+
+.iconos-satisfaccion button {
+  flex: 1;
+  font-size: 1.6rem;
+  background: var(--color-cream);
+  border: 2px solid var(--color-sand);
+  border-radius: 10px;
+  padding: 10px 0;
+}
+
+.iconos-satisfaccion button.seleccionado {
+  border-color: var(--color-terracotta);
+  background: var(--color-sand);
+}
+
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+/* --- Login --- */
+.login-screen {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--color-white);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 36px;
+  width: 100%;
+  max-width: 380px;
+  text-align: center;
+}
+
+.login-card .marca {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  margin-bottom: 4px;
+}
+
+.login-card .marca .bird {
+  color: var(--color-terracotta);
+}
+
+.login-card p {
+  color: var(--color-brown-700);
+  font-size: 0.88rem;
+  margin-bottom: 22px;
+}
+
+.login-card form {
+  text-align: left;
+}
+
+.login-card .btn-principal {
+  width: 100%;
+  margin-top: 6px;
+}
