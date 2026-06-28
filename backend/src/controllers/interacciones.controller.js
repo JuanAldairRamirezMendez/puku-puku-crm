@@ -56,27 +56,37 @@ async function cerrar(req, res, next) {
     const interaccion = await prisma.interaccion.findUnique({ where: { id } });
     if (!interaccion) return res.status(404).json({ error: 'Interacción no encontrada.' });
 
-    const interaccionActualizada = await prisma.interaccion.update({
-      where: { id },
-      data: {
-        resumenPedido: resumenPedido ?? interaccion.resumenPedido,
-        montoSoles: montoSoles !== undefined ? montoSoles : interaccion.montoSoles,
-        actualizoPreferencia: !!actualizoPreferencia,
-        observacion: observacion || null,
-        satisfaccion: satisfaccion || null,
-        estado: 'RESUELTO',
-        cerradaEn: new Date(),
-      },
-    });
-
-    // Si el colaborador activó el toggle "¿actualizar producto favorito?",
-    // se propaga el nuevo valor al perfil del cliente (Pantalla 1/2).
-    if (actualizoPreferencia && productoFavoritoNuevo) {
-      await prisma.cliente.update({
-        where: { id: interaccion.clienteId },
-        data: { productoFavorito: productoFavoritoNuevo },
+    // Evita race condition: si ya está resuelta, se rechaza el cierre.
+    // Dos colaboradores no pueden cerrar la misma interacción dos veces.
+    if (interaccion.estado === 'RESUELTO') {
+      return res.status(409).json({
+        error: 'Esta interacción ya fue cerrada por otro colaborador.',
       });
     }
+
+    const [interaccionActualizada] = await prisma.$transaction(async (tx) => {
+      const actualizada = await tx.interaccion.update({
+        where: { id },
+        data: {
+          resumenPedido: resumenPedido ?? interaccion.resumenPedido,
+          montoSoles: montoSoles !== undefined ? montoSoles : interaccion.montoSoles,
+          actualizoPreferencia: !!actualizoPreferencia,
+          observacion: observacion || null,
+          satisfaccion: satisfaccion || null,
+          estado: 'RESUELTO',
+          cerradaEn: new Date(),
+        },
+      });
+
+      if (actualizoPreferencia && productoFavoritoNuevo) {
+        await tx.cliente.update({
+          where: { id: interaccion.clienteId },
+          data: { productoFavorito: productoFavoritoNuevo },
+        });
+      }
+
+      return [actualizada];
+    });
 
     return res.json(interaccionActualizada);
   } catch (err) {

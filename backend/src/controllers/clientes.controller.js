@@ -11,18 +11,33 @@ async function buscar(req, res, next) {
     const q = (req.query.q || '').trim();
     if (!q) return res.json([]);
 
-    const clientes = await prisma.cliente.findMany({
-      where: {
-        OR: [
-          { nombreCompleto: { contains: q, mode: 'insensitive' } },
-          { telefono: { contains: q } },
-        ],
-      },
-      take: 10,
-      orderBy: { nombreCompleto: 'asc' },
-    });
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+    const skip = (page - 1) * limit;
 
-    return res.json(clientes);
+    const where = {
+      OR: [
+        { nombreCompleto: { contains: q, mode: 'insensitive' } },
+        { telefono: { contains: q } },
+      ],
+    };
+
+    const [clientes, total] = await Promise.all([
+      prisma.cliente.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { nombreCompleto: 'asc' },
+      }),
+      prisma.cliente.count({ where }),
+    ]);
+
+    return res.json({
+      data: clientes,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     next(err);
   }
@@ -56,6 +71,17 @@ async function crear(req, res, next) {
       return res.status(400).json({
         error:
           'No se puede registrar al cliente sin su consentimiento explícito (Ley N.° 29733, art. 13°).',
+      });
+    }
+
+    // Validación previa: si el teléfono ya existe, se informa al colaborador
+    // con el nombre del cliente existente para evitar duplicados y permitir
+    // asociar la interacción al registro correcto.
+    const existente = await prisma.cliente.findUnique({ where: { telefono } });
+    if (existente) {
+      return res.status(409).json({
+        error: `Ya existe un cliente registrado con el teléfono ${telefono}: ${existente.nombreCompleto}.`,
+        clienteExistente: { id: existente.id, nombre: existente.nombreCompleto },
       });
     }
 
