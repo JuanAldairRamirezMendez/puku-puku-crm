@@ -36,6 +36,17 @@ Esto levanta PostgreSQL en `localhost:5432`.
 
 Si aparece un conflicto por un contenedor existente llamado `puku_puku_db`, actualizar el repositorio y volver a ejecutar el comando. El `docker-compose.yml` actual ya no fija `container_name`, para evitar choques entre copias locales del proyecto.
 
+Si el puerto `5432` ya esta ocupado por otro PostgreSQL local, detener ese servicio antes de levantar Docker. En Windows puede aparecer como `postgresql-x64-18 - PostgreSQL Server 18`.
+
+Como alternativa temporal, en PowerShell se puede levantar esta copia en otro puerto:
+
+```powershell
+$env:POSTGRES_PORT = "5433"
+docker compose up -d
+```
+
+En ese caso, cambiar tambien `DATABASE_URL` y `DIRECT_URL` en `backend/.env` para usar `localhost:5433`.
+
 ### 2. Backend
 
 ```bash
@@ -76,7 +87,13 @@ cd ../frontend
 npm run build
 ```
 
-Nota de QA: en este entorno de Codex, `npx.cmd prisma validate` ejecuto correctamente. El build de Vite fallo por permisos del sandbox al leer rutas superiores, no por un error confirmado del codigo. Debe repetirse en una terminal local normal.
+Validacion de integracion ejecutada en Codex para la rama de Peter:
+
+- Docker Compose: PostgreSQL publicado en `localhost:5432`.
+- Prisma migrate: esquema sincronizado contra `127.0.0.1:5432`.
+- Seed: usuarios de prueba creados sin cambiar credenciales del equipo.
+- Backend: tests Jest `12/12` y smoke test de health/login/export CSV aprobados.
+- Frontend: `npm.cmd run build` aprobado.
 
 ## Mapeo APF2 a codigo
 
@@ -103,6 +120,7 @@ Copiar `backend/.env.example` a `backend/.env` y ajustar:
 
 ```env
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/puku_puku_crm?schema=public"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5432/puku_puku_crm?schema=public"
 JWT_SECRET="reemplazar_por_un_secreto_largo_y_aleatorio"
 JWT_EXPIRES_IN="8h"
 CHURN_INACTIVITY_DAYS=30

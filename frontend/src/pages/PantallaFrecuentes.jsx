@@ -52,15 +52,8 @@ export default function PantallaFrecuentes() {
   async function handleExportarCSV() {
     setExportando(true);
     try {
-      const token = document.cookie
-        .split('; ')
-        .find((r) => r.startsWith('token='))
-        ?.split('=')[1];
-
       const headers = { 'Content-Type': 'application/json' };
-      // Reutilizar el mismo mecanismo de auth que usa client.js (token en memoria
-      // expuesto a través del módulo, no del cookie — se accede via api._getToken si
-      // existe, de lo contrario el backend responde 401 y se muestra el error)
+      // Reutilizar el mismo mecanismo de auth que usa client.js: token JWT en memoria.
       const res = await fetch(`${BASE_URL}/reportes/export-apf3.csv`, {
         headers: api._authHeader ? api._authHeader() : headers,
       });

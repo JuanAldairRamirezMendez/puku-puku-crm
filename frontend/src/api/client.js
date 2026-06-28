@@ -6,13 +6,16 @@ export function setToken(token) {
   tokenEnMemoria = token;
 }
 
-async function request(path, { method = 'GET', body } = {}) {
+function authHeaders() {
   const headers = { 'Content-Type': 'application/json' };
   if (tokenEnMemoria) headers.Authorization = `Bearer ${tokenEnMemoria}`;
+  return headers;
+}
 
+async function request(path, { method = 'GET', body } = {}) {
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
-    headers,
+    headers: authHeaders(),
     body: body ? JSON.stringify(body) : undefined,
   });
 
@@ -24,6 +27,7 @@ async function request(path, { method = 'GET', body } = {}) {
 }
 
 export const api = {
+  _authHeader: authHeaders,
   login: (email, password) => request('/auth/login', { method: 'POST', body: { email, password } }),
   buscarClientes: (q) => request(`/clientes/buscar?q=${encodeURIComponent(q)}`),
   crearCliente: (datos) => request('/clientes', { method: 'POST', body: datos }),
