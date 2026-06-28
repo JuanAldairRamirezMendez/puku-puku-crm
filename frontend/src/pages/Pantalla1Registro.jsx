@@ -75,8 +75,8 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
       return;
     }
     try {
-      const data = await api.buscarClientes(valor);
-      setResultados(data);
+      const res = await api.buscarClientes(valor);
+      setResultados(res.data || res);
     } catch (err) {
       setError(mensajeApiAmigable(err.message));
     }

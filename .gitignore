@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.env
+.env.local
+.DS_Store
+npm-debug.log*
+.vite/
+.graphify-out/
+graphify-out/
+backend/graphify-out/
+.graphifyignore
+.opencode/
