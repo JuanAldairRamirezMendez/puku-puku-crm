@@ -1,65 +1,132 @@
-# Puku Puku CRM — Panel de Atención Unificado
+# Puku Puku CRM - Panel de Atencion Unificado
 
-Implementación full-stack del prototipo diseñado en el **APF2** (Design Thinking + Scrum)
-para LA CÁPSULA S.A.C. / PUKU PUKU. Reemplaza/complementa el piloto en HubSpot Free con
-un sistema propio: **Express.js + PostgreSQL (Prisma) + React**.
+Implementacion full-stack del prototipo disenado en el APF2 para LA CAPSULA S.A.C. / PUKU PUKU. El sistema complementa el piloto en HubSpot Free con una aplicacion propia basada en Express.js, PostgreSQL, Prisma y React.
 
 ## Estructura
 
-```
+```text
 puku-puku-crm/
 ├── docker-compose.yml      # PostgreSQL local
-├── backend/                # API REST (Express + Prisma)
+├── backend/                # API REST Express + Prisma
 │   ├── prisma/schema.prisma
 │   ├── prisma/seed.js
-│   └── src/...
-└── frontend/               # Las 3 pantallas del prototipo (React + Vite)
-    └── src/...
+│   └── src/
+├── frontend/               # Pantallas del prototipo APF2
+│   └── src/
+└── checklist.md            # Pruebas manuales QA para APF3
 ```
 
-## Cómo correrlo
+## Requisitos
+
+- Node.js 18 o superior.
+- Docker Desktop iniciado.
+- Git.
+
+En Windows PowerShell, si `npm` o `npx` se bloquean por politica de ejecucion, usar `npm.cmd` y `npx.cmd`.
+
+## Configuracion inicial
 
 ### 1. Base de datos
+
 ```bash
-docker compose up -d        # levanta PostgreSQL en localhost:5432
+docker compose up -d
 ```
 
+Esto levanta PostgreSQL en `localhost:5432`.
+
+Si aparece un conflicto por un contenedor existente llamado `puku_puku_db`, actualizar el repositorio y volver a ejecutar el comando. El `docker-compose.yml` actual ya no fija `container_name`, para evitar choques entre copias locales del proyecto.
+
 ### 2. Backend
+
 ```bash
 cd backend
-cp .env.example .env        # ajusta JWT_SECRET si quieres
+cp .env.example .env
 npm install
-npm run prisma:migrate      # crea las tablas
-npm run seed                # usuarios y cliente de prueba
-npm run dev                 # http://localhost:4000
+npm run prisma:migrate
+npm run seed
+npm run dev
 ```
-Credenciales de prueba (creadas por el seed):
+
+API local: `http://localhost:4000`.
+
+Credenciales de prueba creadas por el seed:
+
 - Admin: `admin@pukupuku.pe` / `puku2026`
 - Colaborador: `carla@pukupuku.pe` / `puku2026`
 
 ### 3. Frontend
+
+En otra terminal:
+
 ```bash
 cd frontend
 npm install
-npm run dev                 # http://localhost:5173 (proxy a la API en :4000)
+npm run dev
 ```
 
-## Mapeo Pantallas APF2 → Código
+Interfaz local: `http://localhost:5173`.
 
-| Pantalla APF2 | Backend | Frontend |
+## Verificacion rapida
+
+```bash
+cd backend
+npx prisma validate
+
+cd ../frontend
+npm run build
+```
+
+Nota de QA: en este entorno de Codex, `npx.cmd prisma validate` ejecuto correctamente. El build de Vite fallo por permisos del sandbox al leer rutas superiores, no por un error confirmado del codigo. Debe repetirse en una terminal local normal.
+
+## Mapeo APF2 a codigo
+
+| Pantalla / flujo | Backend | Frontend |
 |---|---|---|
-| 1. Búsqueda y registro | `clientes.controller.js` (`buscar`, `crear`) | `Pantalla1Registro.jsx` |
-| 2. Historial de interacciones | `clientes.controller.js` (`obtenerDetalle`) | `Pantalla2Historial.jsx` |
-| 3. Registro post-atención | `interacciones.controller.js` (`cerrar`) | `Pantalla3PostAtencion.jsx` |
-| US04 Reporte clientes frecuentes | `reportes.controller.js` | `PantallaFrecuentes.jsx` |
-| Puente a APF3 (dataset ML) | `GET /api/reportes/export-apf3.csv` | — (se descarga y se usa en el notebook Python) |
+| Login | `auth.controller.js` | `LoginForm.jsx` |
+| Pantalla 1 - Busqueda y registro | `clientes.controller.js` | `Pantalla1Registro.jsx` |
+| Pantalla 2 - Historial | `clientes.controller.js` | `Pantalla2Historial.jsx` |
+| Pantalla 3 - Cierre post-atencion | `interacciones.controller.js` | `Pantalla3PostAtencion.jsx` |
+| Reporte clientes frecuentes | `reportes.controller.js` | `PantallaFrecuentes.jsx` |
+| Dataset APF3 | `GET /api/reportes/export-apf3.csv` | Descarga CSV para notebook ML |
 
-## Cumplimiento normativo embebido (Ley N.° 29733)
-- El endpoint `POST /api/clientes` **rechaza** el registro si `consentimientoLey29733 !== true` (replica el bloqueo del botón "Guardar" del prototipo en papel).
-- Autenticación JWT + control de acceso por rol (`requireRole`) en rutas de reportes y administración.
-- `twoFactorEnabled` ya modelado en `Usuario` para activar 2FA real (TOTP) como siguiente iteración.
+## Cumplimiento Ley N. 29733
 
-## Siguiente paso natural (puente a APF3)
-`GET /api/reportes/export-apf3.csv` entrega exactamente las columnas que pide la consigna de
-APF3 (`frecuencia_visita`, `ticket_promedio_soles`, `canal_origen`, `producto_favorito`,
-`churn_label`), listas para cargarse con `pandas` en el notebook de K-Means / clasificación.
+- `POST /api/clientes` debe rechazar registros cuando `consentimientoLey29733 !== true`.
+- El consentimiento se registra con fecha para trazabilidad.
+- Las rutas protegidas usan JWT y control de rol.
+- `JWT_SECRET` y `DATABASE_URL` deben vivir solo en `.env` local o variables del servidor.
+- No se debe subir `backend/.env` al repositorio.
+
+## Variables de entorno
+
+Copiar `backend/.env.example` a `backend/.env` y ajustar:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/puku_puku_crm?schema=public"
+JWT_SECRET="reemplazar_por_un_secreto_largo_y_aleatorio"
+JWT_EXPIRES_IN="8h"
+CHURN_INACTIVITY_DAYS=30
+```
+
+La contraseña `postgres` del compose y la clave `puku2026` del seed son valores locales de desarrollo. Para una demo publicada o produccion, deben reemplazarse.
+
+## Entregables APF3 relacionados
+
+- `checklist.md`: casos de prueba manual para login, consentimiento, atencion y CSV.
+- `docs/anexo-uso-ia-apf3.md`: declaracion de uso de IA lista para pegar en el informe.
+- `GET /api/reportes/export-apf3.csv`: dataset con columnas para modelado ML.
+
+## Flujo Git recomendado
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feature/peter-devops-qa
+
+# despues de validar y documentar
+git add README.md checklist.md docs/anexo-uso-ia-apf3.md docker-compose.yml .gitignore backend/.env.example
+git commit -m "docs(devops): agregar QA y documentacion APF3"
+git push origin feature/peter-devops-qa
+```
+
+Abrir Pull Request hacia `dev`. La validacion final hacia `main` debe ejecutarse cuando las ramas `Juan`, `camilo` y `renzo` esten integradas en `dev`.
