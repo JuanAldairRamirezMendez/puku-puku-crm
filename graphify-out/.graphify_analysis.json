@@ -1,0 +1,281 @@
+{
+  "communities": {
+    "0": [
+      "api_client",
+      "api_client_api",
+      "api_client_request",
+      "api_client_settoken",
+      "components_loginform",
+      "components_loginform_loginform",
+      "components_navbar",
+      "components_navbar_navbar",
+      "frontend_src_app_jsx_src_app",
+      "frontend_src_app_jsx_src_app_app",
+      "pages_pantalla1registro",
+      "pages_pantalla1registro_canales",
+      "pages_pantalla1registro_pantalla1registro",
+      "pages_pantalla2historial",
+      "pages_pantalla2historial_canales",
+      "pages_pantalla2historial_formatearfecha",
+      "pages_pantalla2historial_pantalla2historial",
+      "pages_pantalla3postatencion",
+      "pages_pantalla3postatencion_iconos",
+      "pages_pantalla3postatencion_pantalla3postatencion",
+      "pages_pantallafrecuentes",
+      "pages_pantallafrecuentes_pantallafrecuentes"
+    ],
+    "1": [
+      "backend_package",
+      "backend_package_dependencies",
+      "backend_package_dependencies_bcryptjs",
+      "backend_package_dependencies_cors",
+      "backend_package_dependencies_dotenv",
+      "backend_package_dependencies_express",
+      "backend_package_dependencies_jsonwebtoken",
+      "backend_package_dependencies_morgan",
+      "backend_package_dependencies_prisma_client",
+      "backend_package_description",
+      "backend_package_devdependencies",
+      "backend_package_devdependencies_nodemon",
+      "backend_package_devdependencies_prisma",
+      "backend_package_main",
+      "backend_package_name",
+      "backend_package_prisma",
+      "backend_package_prisma_seed",
+      "backend_package_type",
+      "backend_package_version"
+    ],
+    "2": [
+      "controllers_reportes_controller",
+      "controllers_reportes_controller_arraytocsv",
+      "controllers_reportes_controller_calcularchurnlabel",
+      "controllers_reportes_controller_clientesfrecuentes",
+      "controllers_reportes_controller_construirdataset",
+      "controllers_reportes_controller_dataset",
+      "controllers_reportes_controller_dias_inactividad",
+      "controllers_reportes_controller_exportarcsv",
+      "controllers_reportes_controller_prisma",
+      "routes_reportes_routes",
+      "routes_reportes_routes_clientesfrecuentes_dataset_exportarcsv",
+      "routes_reportes_routes_express",
+      "routes_reportes_routes_requireauth",
+      "routes_reportes_routes_requirerole",
+      "routes_reportes_routes_router",
+      "utils_exportcsv",
+      "utils_exportcsv_arraytocsv"
+    ],
+    "3": [
+      "config_db",
+      "config_db_prisma",
+      "config_db_prismaclient",
+      "controllers_interacciones_controller",
+      "controllers_interacciones_controller_cerrar",
+      "controllers_interacciones_controller_crear",
+      "controllers_interacciones_controller_prisma",
+      "middleware_auth",
+      "middleware_auth_jwt",
+      "middleware_auth_requireauth",
+      "routes_interacciones_routes",
+      "routes_interacciones_routes_crear_cerrar",
+      "routes_interacciones_routes_express",
+      "routes_interacciones_routes_requireauth",
+      "routes_interacciones_routes_router"
+    ],
+    "4": [
+      "frontend_package",
+      "frontend_package_dependencies",
+      "frontend_package_dependencies_react",
+      "frontend_package_dependencies_react_dom",
+      "frontend_package_description",
+      "frontend_package_devdependencies",
+      "frontend_package_devdependencies_vite",
+      "frontend_package_devdependencies_vitejs_plugin_react",
+      "frontend_package_name",
+      "frontend_package_scripts",
+      "frontend_package_scripts_build",
+      "frontend_package_scripts_dev",
+      "frontend_package_scripts_preview",
+      "frontend_package_type",
+      "frontend_package_version"
+    ],
+    "5": [
+      "controllers_auth_controller",
+      "controllers_auth_controller_bcrypt",
+      "controllers_auth_controller_jwt",
+      "controllers_auth_controller_login",
+      "controllers_auth_controller_prisma",
+      "controllers_auth_controller_registrar",
+      "middleware_roles",
+      "middleware_roles_requirerole",
+      "routes_auth_routes",
+      "routes_auth_routes_express",
+      "routes_auth_routes_login_registrar",
+      "routes_auth_routes_requireauth",
+      "routes_auth_routes_requirerole",
+      "routes_auth_routes_router"
+    ],
+    "6": [
+      "controllers_clientes_controller",
+      "controllers_clientes_controller_actualizar",
+      "controllers_clientes_controller_buscar",
+      "controllers_clientes_controller_calcularchurnlabel",
+      "controllers_clientes_controller_crear",
+      "controllers_clientes_controller_obtenerdetalle",
+      "controllers_clientes_controller_prisma",
+      "routes_clientes_routes",
+      "routes_clientes_routes_buscar_crear_obtenerdetalle_actualizar",
+      "routes_clientes_routes_express",
+      "routes_clientes_routes_requireauth",
+      "routes_clientes_routes_router",
+      "utils_churn",
+      "utils_churn_calcularchurnlabel"
+    ],
+    "7": [
+      "backend_src_app_js_src_app",
+      "backend_src_app_js_src_app_app",
+      "middleware_errorhandler",
+      "middleware_errorhandler_errorhandler",
+      "middleware_errorhandler_notfound",
+      "src_app_authroutes",
+      "src_app_clientesroutes",
+      "src_app_cors",
+      "src_app_errorhandler_notfound",
+      "src_app_express",
+      "src_app_interaccionesroutes",
+      "src_app_morgan",
+      "src_app_reportesroutes"
+    ],
+    "8": [
+      "backend_package_scripts",
+      "backend_package_scripts_dev",
+      "backend_package_scripts_prisma_generate",
+      "backend_package_scripts_prisma_migrate",
+      "backend_package_scripts_prisma_studio",
+      "backend_package_scripts_seed",
+      "backend_package_scripts_start"
+    ],
+    "9": [
+      "prisma_seed",
+      "prisma_seed_bcrypt",
+      "prisma_seed_main",
+      "prisma_seed_prisma",
+      "prisma_seed_prismaclient"
+    ],
+    "10": [
+      "opencode_opencode",
+      "opencode_opencode_plugin",
+      "opencode_opencode_schema"
+    ],
+    "11": [
+      "plugins_graphify",
+      "plugins_graphify_graphifyplugin"
+    ],
+    "12": [
+      "src_server",
+      "src_server_app"
+    ],
+    "13": [
+      "frontend_vite_config"
+    ],
+    "14": [
+      "src_main"
+    ]
+  },
+  "cohesion": {
+    "0": 0.16883116883116883,
+    "1": 0.10526315789473684,
+    "2": 0.17647058823529413,
+    "3": 0.1619047619047619,
+    "4": 0.13333333333333333,
+    "5": 0.17582417582417584,
+    "6": 0.2087912087912088,
+    "7": 0.1794871794871795,
+    "8": 0.2857142857142857,
+    "9": 0.4,
+    "10": 0.6666666666666666,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0
+  },
+  "gods": [
+    {
+      "id": "backend_package_scripts",
+      "label": "scripts",
+      "degree": 7
+    },
+    {
+      "id": "api_client_api",
+      "label": "api",
+      "degree": 6
+    },
+    {
+      "id": "middleware_auth_requireauth",
+      "label": "requireAuth()",
+      "degree": 5
+    },
+    {
+      "id": "controllers_reportes_controller_construirdataset",
+      "label": "construirDataset()",
+      "degree": 4
+    },
+    {
+      "id": "controllers_reportes_controller_exportarcsv",
+      "label": "exportarCsv()",
+      "degree": 4
+    },
+    {
+      "id": "utils_churn_calcularchurnlabel",
+      "label": "calcularChurnLabel()",
+      "degree": 4
+    },
+    {
+      "id": "frontend_package_scripts",
+      "label": "scripts",
+      "degree": 4
+    },
+    {
+      "id": "controllers_clientes_controller_obtenerdetalle",
+      "label": "obtenerDetalle()",
+      "degree": 3
+    },
+    {
+      "id": "controllers_reportes_controller_clientesfrecuentes",
+      "label": "clientesFrecuentes()",
+      "degree": 3
+    },
+    {
+      "id": "controllers_reportes_controller_dataset",
+      "label": "dataset()",
+      "degree": 3
+    }
+  ],
+  "surprises": [
+    {
+      "source": "obtenerDetalle()",
+      "target": "calcularChurnLabel()",
+      "source_files": [
+        "backend/src/controllers/clientes.controller.js",
+        "backend/src/utils/churn.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "exportarCsv()",
+      "target": "arrayToCsv()",
+      "source_files": [
+        "backend/src/controllers/reportes.controller.js",
+        "backend/src/utils/exportCsv.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

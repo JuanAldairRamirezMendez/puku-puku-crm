@@ -1,0 +1,217 @@
+{
+  "communities": {
+    "0": [
+      "package",
+      "package_dependencies",
+      "package_dependencies_bcryptjs",
+      "package_dependencies_cors",
+      "package_dependencies_dotenv",
+      "package_dependencies_express",
+      "package_dependencies_jsonwebtoken",
+      "package_dependencies_morgan",
+      "package_dependencies_prisma_client",
+      "package_description",
+      "package_devdependencies",
+      "package_devdependencies_nodemon",
+      "package_devdependencies_prisma",
+      "package_main",
+      "package_name",
+      "package_type",
+      "package_version"
+    ],
+    "1": [
+      "middleware_errorhandler",
+      "middleware_errorhandler_errorhandler",
+      "middleware_errorhandler_notfound",
+      "src_app",
+      "src_app_app",
+      "src_app_authroutes",
+      "src_app_clientesroutes",
+      "src_app_cors",
+      "src_app_errorhandler_notfound",
+      "src_app_express",
+      "src_app_interaccionesroutes",
+      "src_app_morgan",
+      "src_app_reportesroutes",
+      "src_server",
+      "src_server_app"
+    ],
+    "2": [
+      "controllers_clientes_controller",
+      "controllers_clientes_controller_actualizar",
+      "controllers_clientes_controller_buscar",
+      "controllers_clientes_controller_calcularchurnlabel",
+      "controllers_clientes_controller_crear",
+      "controllers_clientes_controller_obtenerdetalle",
+      "controllers_clientes_controller_prisma",
+      "routes_clientes_routes",
+      "routes_clientes_routes_buscar_crear_obtenerdetalle_actualizar",
+      "routes_clientes_routes_express",
+      "routes_clientes_routes_requireauth",
+      "routes_clientes_routes_router",
+      "utils_churn",
+      "utils_churn_calcularchurnlabel"
+    ],
+    "3": [
+      "config_db",
+      "config_db_prisma",
+      "config_db_prismaclient",
+      "controllers_interacciones_controller",
+      "controllers_interacciones_controller_cerrar",
+      "controllers_interacciones_controller_crear",
+      "controllers_interacciones_controller_prisma",
+      "routes_interacciones_routes",
+      "routes_interacciones_routes_crear_cerrar",
+      "routes_interacciones_routes_express",
+      "routes_interacciones_routes_requireauth",
+      "routes_interacciones_routes_router"
+    ],
+    "4": [
+      "controllers_auth_controller",
+      "controllers_auth_controller_bcrypt",
+      "controllers_auth_controller_jwt",
+      "controllers_auth_controller_login",
+      "controllers_auth_controller_prisma",
+      "controllers_auth_controller_registrar",
+      "routes_auth_routes",
+      "routes_auth_routes_express",
+      "routes_auth_routes_login_registrar",
+      "routes_auth_routes_requireauth",
+      "routes_auth_routes_requirerole",
+      "routes_auth_routes_router"
+    ],
+    "5": [
+      "controllers_reportes_controller",
+      "controllers_reportes_controller_arraytocsv",
+      "controllers_reportes_controller_calcularchurnlabel",
+      "controllers_reportes_controller_clientesfrecuentes",
+      "controllers_reportes_controller_construirdataset",
+      "controllers_reportes_controller_dataset",
+      "controllers_reportes_controller_dias_inactividad",
+      "controllers_reportes_controller_exportarcsv",
+      "controllers_reportes_controller_prisma",
+      "utils_exportcsv",
+      "utils_exportcsv_arraytocsv"
+    ],
+    "6": [
+      "middleware_auth",
+      "middleware_auth_jwt",
+      "middleware_auth_requireauth",
+      "middleware_roles",
+      "middleware_roles_requirerole",
+      "routes_reportes_routes",
+      "routes_reportes_routes_clientesfrecuentes_dataset_exportarcsv",
+      "routes_reportes_routes_express",
+      "routes_reportes_routes_requireauth",
+      "routes_reportes_routes_requirerole",
+      "routes_reportes_routes_router"
+    ],
+    "7": [
+      "package_scripts",
+      "package_scripts_dev",
+      "package_scripts_prisma_generate",
+      "package_scripts_prisma_migrate",
+      "package_scripts_prisma_studio",
+      "package_scripts_seed",
+      "package_scripts_start"
+    ],
+    "8": [
+      "prisma_seed",
+      "prisma_seed_bcrypt",
+      "prisma_seed_main",
+      "prisma_seed_prisma",
+      "prisma_seed_prismaclient"
+    ]
+  },
+  "cohesion": {
+    "0": 0.11764705882352941,
+    "1": 0.1523809523809524,
+    "2": 0.2087912087912088,
+    "3": 0.19696969696969696,
+    "4": 0.19696969696969696,
+    "5": 0.2727272727272727,
+    "6": 0.21818181818181817,
+    "7": 0.2857142857142857,
+    "8": 0.4
+  },
+  "gods": [
+    {
+      "id": "package_scripts",
+      "label": "scripts",
+      "degree": 7
+    },
+    {
+      "id": "middleware_auth_requireauth",
+      "label": "requireAuth()",
+      "degree": 5
+    },
+    {
+      "id": "controllers_reportes_controller_construirdataset",
+      "label": "construirDataset()",
+      "degree": 4
+    },
+    {
+      "id": "controllers_reportes_controller_exportarcsv",
+      "label": "exportarCsv()",
+      "degree": 4
+    },
+    {
+      "id": "utils_churn_calcularchurnlabel",
+      "label": "calcularChurnLabel()",
+      "degree": 4
+    },
+    {
+      "id": "controllers_clientes_controller_obtenerdetalle",
+      "label": "obtenerDetalle()",
+      "degree": 3
+    },
+    {
+      "id": "controllers_reportes_controller_clientesfrecuentes",
+      "label": "clientesFrecuentes()",
+      "degree": 3
+    },
+    {
+      "id": "controllers_reportes_controller_dataset",
+      "label": "dataset()",
+      "degree": 3
+    },
+    {
+      "id": "middleware_roles_requirerole",
+      "label": "requireRole()",
+      "degree": 3
+    },
+    {
+      "id": "utils_exportcsv_arraytocsv",
+      "label": "arrayToCsv()",
+      "degree": 3
+    }
+  ],
+  "surprises": [
+    {
+      "source": "obtenerDetalle()",
+      "target": "calcularChurnLabel()",
+      "source_files": [
+        "src/controllers/clientes.controller.js",
+        "src/utils/churn.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    },
+    {
+      "source": "exportarCsv()",
+      "target": "arrayToCsv()",
+      "source_files": [
+        "src/controllers/reportes.controller.js",
+        "src/utils/exportCsv.js"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "cross-file semantic connection"
+    }
+  ],
+  "tokens": {
+    "input": 0,
+    "output": 0
+  }
+}

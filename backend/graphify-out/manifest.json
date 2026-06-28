@@ -1,0 +1,92 @@
+{
+  "package.json": {
+    "mtime": 1782545123.7938309,
+    "ast_hash": "f50fb639f7f228ee630eef3617ca9b4f",
+    "semantic_hash": "f50fb639f7f228ee630eef3617ca9b4f"
+  },
+  "prisma/seed.js": {
+    "mtime": 1782545123.795828,
+    "ast_hash": "d945bc61d5bbe18318d7eabb1e64486b",
+    "semantic_hash": "d945bc61d5bbe18318d7eabb1e64486b"
+  },
+  "src/app.js": {
+    "mtime": 1782545123.795828,
+    "ast_hash": "41e4c9dffff794691513a0d9be5b34a8",
+    "semantic_hash": "41e4c9dffff794691513a0d9be5b34a8"
+  },
+  "src/config/db.js": {
+    "mtime": 1782545123.7968273,
+    "ast_hash": "98d9d9fe3248610253b7bf73eff0d56e",
+    "semantic_hash": "98d9d9fe3248610253b7bf73eff0d56e"
+  },
+  "src/controllers/auth.controller.js": {
+    "mtime": 1782545123.7968273,
+    "ast_hash": "8b4e3e1bbb35c54044945d0f441e8726",
+    "semantic_hash": "8b4e3e1bbb35c54044945d0f441e8726"
+  },
+  "src/controllers/clientes.controller.js": {
+    "mtime": 1782545123.7968273,
+    "ast_hash": "2e2fd3dcbe2e80771e5d1c3c639cb71a",
+    "semantic_hash": "2e2fd3dcbe2e80771e5d1c3c639cb71a"
+  },
+  "src/controllers/interacciones.controller.js": {
+    "mtime": 1782545123.7981675,
+    "ast_hash": "cea29ecfe106307a962ca59e60fa5a29",
+    "semantic_hash": "cea29ecfe106307a962ca59e60fa5a29"
+  },
+  "src/controllers/reportes.controller.js": {
+    "mtime": 1782545123.7981675,
+    "ast_hash": "a701e4a24719cce4bd0e0ae21b3250f7",
+    "semantic_hash": "a701e4a24719cce4bd0e0ae21b3250f7"
+  },
+  "src/middleware/auth.js": {
+    "mtime": 1782545123.7981675,
+    "ast_hash": "6318e3a93c0f53e9f4fc9149c39c678f",
+    "semantic_hash": "6318e3a93c0f53e9f4fc9149c39c678f"
+  },
+  "src/middleware/errorHandler.js": {
+    "mtime": 1782545123.7992353,
+    "ast_hash": "fa810172a1d8e0a2cb5dcf2b1421bd9f",
+    "semantic_hash": "fa810172a1d8e0a2cb5dcf2b1421bd9f"
+  },
+  "src/middleware/roles.js": {
+    "mtime": 1782545123.7992353,
+    "ast_hash": "ee945757e49566cf89c699154b2ca81d",
+    "semantic_hash": "ee945757e49566cf89c699154b2ca81d"
+  },
+  "src/routes/auth.routes.js": {
+    "mtime": 1782545123.7992353,
+    "ast_hash": "275f3370ef13b00b481ae62af48da602",
+    "semantic_hash": "275f3370ef13b00b481ae62af48da602"
+  },
+  "src/routes/clientes.routes.js": {
+    "mtime": 1782545123.7998629,
+    "ast_hash": "1c6c2207be7a2b491e0e6102f3006819",
+    "semantic_hash": "1c6c2207be7a2b491e0e6102f3006819"
+  },
+  "src/routes/interacciones.routes.js": {
+    "mtime": 1782545123.7998629,
+    "ast_hash": "718174fd5fad9c184ccca6ab4f6714ab",
+    "semantic_hash": "718174fd5fad9c184ccca6ab4f6714ab"
+  },
+  "src/routes/reportes.routes.js": {
+    "mtime": 1782545123.7998629,
+    "ast_hash": "44fad3714562cc131c2d4c60c187990f",
+    "semantic_hash": "44fad3714562cc131c2d4c60c187990f"
+  },
+  "src/server.js": {
+    "mtime": 1782545123.7998629,
+    "ast_hash": "8a6c49431b555e5e65e14b034f3cd694",
+    "semantic_hash": "8a6c49431b555e5e65e14b034f3cd694"
+  },
+  "src/utils/churn.js": {
+    "mtime": 1782545123.8005366,
+    "ast_hash": "6cbbd5e34f227caa62b66f5b9d3d1af8",
+    "semantic_hash": "6cbbd5e34f227caa62b66f5b9d3d1af8"
+  },
+  "src/utils/exportCsv.js": {
+    "mtime": 1782545123.8005366,
+    "ast_hash": "d0cd762b941fa6cb4a073fa9d45b3520",
+    "semantic_hash": "d0cd762b941fa6cb4a073fa9d45b3520"
+  }
+}
