@@ -1,11 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 
-// [NOTA BACKEND] Si en el futuro el endpoint /reportes/clientes-frecuentes no devuelve
-// todos los canales posibles en la data, el filtro aquí solo actuará sobre los presentes.
-// No se necesita ningún endpoint adicional para esta funcionalidad.
-const BASE_URL = '/api';
-
 export default function PantallaFrecuentes() {
   const [datos, setDatos] = useState(null);
   const [error, setError] = useState('');
@@ -43,28 +38,10 @@ export default function PantallaFrecuentes() {
       ? datos.clientes.filter((c) => c.canal_origen === canalFiltro)
       : datos?.clientes ?? [];
 
-  /*
-    [TAREA 3] Descarga el CSV directamente desde el endpoint del backend.
-    Se usa fetch manual para poder gestionar el estado "exportando" y manejar errores,
-    sin agregar librerías externas.
-    El endpoint GET /api/reportes/export-apf3.csv ya existe en el backend (Prompt 1).
-  */
   async function handleExportarCSV() {
     setExportando(true);
     try {
-      const headers = { 'Content-Type': 'application/json' };
-      // Reutilizar el mismo mecanismo de auth que usa client.js: token JWT en memoria.
-      const res = await fetch(`${BASE_URL}/reportes/export-apf3.csv`, {
-        headers: api._authHeader ? api._authHeader() : headers,
-      });
-
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || `Error ${res.status} al exportar`);
-      }
-
-      // Crear un enlace temporal para forzar descarga del archivo
-      const blob = await res.blob();
+      const blob = await api.exportarCsv();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

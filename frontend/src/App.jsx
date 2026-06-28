@@ -1,25 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import LoginForm from './components/LoginForm.jsx';
 import Navbar from './components/Navbar.jsx';
 import Pantalla1Registro from './pages/Pantalla1Registro.jsx';
 import Pantalla2Historial from './pages/Pantalla2Historial.jsx';
 import PantallaFrecuentes from './pages/PantallaFrecuentes.jsx';
-import { setToken } from './api/client';
+import { api, clearSession, getUsuarioGuardado } from './api/client';
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);
-  const [vista, setVista] = useState('buscar'); // 'buscar' | 'historial' | 'frecuentes'
+  const [vista, setVista] = useState('buscar');
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
+  const [verificando, setVerificando] = useState(true);
+
+  useEffect(() => {
+    const guardado = getUsuarioGuardado();
+    if (guardado) {
+      api.verificarSesion()
+        .then((data) => setUsuario(data.usuario))
+        .catch(() => clearSession())
+        .finally(() => setVerificando(false));
+    } else {
+      setVerificando(false);
+    }
+  }, []);
 
   function handleLogin(datosUsuario) {
     setUsuario(datosUsuario);
   }
 
   function handleSalir() {
-    setToken(null);
+    clearSession();
     setUsuario(null);
     setVista('buscar');
     setClienteSeleccionado(null);
+  }
+
+  if (verificando) {
+    return <div className="app-shell"><p style={{ textAlign: 'center', marginTop: 80 }}>Verificando sesión…</p></div>;
   }
 
   function handleSeleccionarCliente(id) {

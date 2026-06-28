@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const morgan = require('morgan');
 
@@ -20,8 +21,16 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/clientes', clientesRoutes);
-app.use('/api', interaccionesRoutes); // expone /api/clientes/:id/interacciones y /api/interacciones/:id/cerrar
+app.use('/api', interaccionesRoutes);
 app.use('/api/reportes', reportesRoutes);
+
+if (process.env.NODE_ENV === 'production') {
+  const distPath = path.join(__dirname, '../../frontend/dist');
+  app.use(express.static(distPath));
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(distPath, 'index.html'));
+  });
+}
 
 app.use(notFound);
 app.use(errorHandler);
