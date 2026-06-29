@@ -260,7 +260,7 @@ describe('GET /api/reportes/export-apf3.csv', () => {
     const header = lines[0];
 
     expect(header).toBe(
-      'nombre,frecuencia_visita,ticket_promedio_soles,canal_origen,producto_favorito,churn_label'
+      'nombre,frecuencia_visita,ticket_promedio_soles,canal_origen,producto_favorito,churn_label,churn_score'
     );
   });
 

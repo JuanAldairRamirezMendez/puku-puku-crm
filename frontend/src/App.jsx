@@ -4,6 +4,7 @@ import Navbar from './components/Navbar.jsx';
 import Pantalla1Registro from './pages/Pantalla1Registro.jsx';
 import Pantalla2Historial from './pages/Pantalla2Historial.jsx';
 import PantallaFrecuentes from './pages/PantallaFrecuentes.jsx';
+import PantallaAnalytics from './pages/PantallaAnalytics.jsx';
 import { api, clearSession, getUsuarioGuardado } from './api/client';
 
 export default function App() {
@@ -74,6 +75,7 @@ export default function App() {
           />
         )}
         {vista === 'frecuentes' && <PantallaFrecuentes />}
+        {vista === 'analytics' && <PantallaAnalytics />}
       </main>
     </div>
   );

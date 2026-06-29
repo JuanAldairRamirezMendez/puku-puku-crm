@@ -480,3 +480,368 @@ p.subtitulo-pantalla {
   width: 100%;
   margin-top: 6px;
 }
+
+/* --- Analytics Dashboard --- */
+.cargando {
+  text-align: center;
+  color: var(--color-brown-700);
+  margin-top: 60px;
+}
+
+.sin-datos {
+  color: var(--color-brown-700);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 18px 0;
+}
+
+.metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.metrica-card {
+  text-align: center;
+  padding: 18px 12px;
+}
+
+.metrica-valor {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--color-terracotta);
+  display: block;
+}
+
+.metrica-label {
+  font-size: 0.78rem;
+  color: var(--color-brown-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 700px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.analytics-grid .card h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 0 0 14px;
+  color: var(--color-brown-900);
+}
+
+/* Barras */
+.grafico-barras {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.barra-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.barra-etiqueta {
+  width: 100px;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  color: var(--color-brown-700);
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.barra-track {
+  flex: 1;
+  height: 18px;
+  background: var(--color-sand);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.barra-relleno {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+  min-width: 4px;
+}
+
+.barra-valor {
+  width: 28px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-brown-900);
+  flex-shrink: 0;
+}
+
+/* Tabla ticket por canal */
+.tabla-ticket {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-sand);
+}
+
+.ticket-fila:last-child {
+  border-bottom: none;
+}
+
+.ticket-canal {
+  font-weight: 600;
+  color: var(--color-brown-900);
+}
+
+.ticket-monto {
+  font-family: var(--font-display);
+  color: var(--color-terracotta);
+  font-weight: 700;
+}
+
+.ticket-churn {
+  font-size: 0.78rem;
+  color: var(--color-brown-700);
+}
+
+/* SVG line chart */
+.grafico-linea {
+  width: 100%;
+  height: auto;
+  max-height: 200px;
+}
+
+/* --- Mapa de calor Productos x Canal --- */
+.heatmap-wrapper {
+  font-size: 0.78rem;
+  overflow-x: auto;
+}
+
+.heatmap-header {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.heatmap-corner {
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.heatmap-col-label {
+  flex: 1;
+  min-width: 60px;
+  text-align: center;
+  font-weight: 600;
+  color: var(--color-brown-700);
+  padding: 4px 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.72rem;
+}
+
+.heatmap-fila {
+  display: flex;
+  gap: 3px;
+  margin-bottom: 3px;
+}
+
+.heatmap-row-label {
+  width: 80px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--color-brown-900);
+  padding-left: 4px;
+  font-size: 0.78rem;
+}
+
+.heatmap-celda {
+  flex: 1;
+  min-width: 60px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.82rem;
+  transition: background-color 0.15s ease;
+}
+
+/* --- Segmentación K-Means --- */
+.segmentacion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.segmentacion-header h3 {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  margin: 0;
+  color: var(--color-brown-900);
+}
+
+.segmentacion-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.88rem;
+  color: var(--color-brown-700);
+}
+
+.clusters-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.cluster-card {
+  padding: 16px;
+  position: relative;
+}
+
+.cluster-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.cluster-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.cluster-label {
+  font-weight: 600;
+  font-size: 0.92rem;
+  color: var(--color-brown-900);
+}
+
+.cluster-stat {
+  font-size: 0.82rem;
+  color: var(--color-brown-700);
+  margin-bottom: 8px;
+}
+
+.cluster-metrics {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  color: var(--color-brown-700);
+}
+
+.cluster-metrics .churn-alto {
+  color: var(--color-danger);
+  font-weight: 600;
+}
+
+.cluster-detalle {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--color-brown-700);
+}
+
+.cluster-detalle summary {
+  cursor: pointer;
+  color: var(--color-terracotta);
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.cluster-detalle summary:hover {
+  text-decoration: underline;
+}
+
+/* --- Filtros Analytics --- */
+.filtros-analytics {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  background: var(--color-white);
+  padding: 14px 18px;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+
+@media (max-width: 600px) {
+  .filtros-analytics {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+/* --- Print / PDF export --- */
+@media print {
+  .navbar, .btn-secundario, .btn-principal, .segmentacion-controls,
+  .cluster-detalle, .cluster-card details,
+  .sesion, nav {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .contenido {
+    max-width: 100% !important;
+    padding: 0 !important;
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    break-inside: avoid;
+  }
+  .metrica-card {
+    break-inside: avoid;
+  }
+  .analytics-grid {
+    break-inside: avoid;
+  }
+  .cluster-card {
+    break-inside: avoid;
+  }
+  .clusters-grid {
+    break-inside: avoid;
+  }
+  .cluster-metrics span {
+    color: #000 !important;
+  }
+}

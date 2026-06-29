@@ -65,8 +65,13 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     .slice(0, 2)
     .join('');
 
-  // [TAREA 1] Determinar si el cliente tiene riesgo de abandono
   const esChurn = cliente.metricas?.churnLabel === 1;
+  const churnScore = cliente.metricas?.churnScore ?? null;
+  const nivelScore = churnScore !== null
+    ? churnScore < 0.33 ? 'bajo'
+      : churnScore < 0.66 ? 'medio'
+      : 'alto'
+    : null;
 
   // [TAREA 4] Slice del feed según la página actual
   const totalInteracciones = cliente.interacciones.length;
@@ -135,6 +140,26 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
               <div className="etiqueta">Ticket prom.</div>
             </div>
           </div>
+
+          {churnScore !== null && (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: 4 }}>
+                <span style={{ color: 'var(--color-brown-700)' }}>Riesgo de churn</span>
+                <span style={{ fontWeight: 700, color: nivelScore === 'alto' ? 'var(--color-danger)' : nivelScore === 'medio' ? 'var(--color-warning)' : 'var(--color-success)' }}>
+                  {nivelScore === 'alto' ? `⚠ ${(churnScore * 100).toFixed(0)}%` : nivelScore === 'medio' ? `◷ ${(churnScore * 100).toFixed(0)}%` : `✓ ${(churnScore * 100).toFixed(0)}%`}
+                </span>
+              </div>
+              <div style={{ height: 6, background: 'var(--color-sand)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${(churnScore * 100).toFixed(0)}%`,
+                  background: churnScore < 0.33 ? 'var(--color-success)' : churnScore < 0.66 ? 'var(--color-warning)' : 'var(--color-danger)',
+                  borderRadius: 999,
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Historial */}

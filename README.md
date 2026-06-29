@@ -128,6 +128,26 @@ CHURN_INACTIVITY_DAYS=30
 
 La contraseña `postgres` del compose y la clave `puku2026` del seed son valores locales de desarrollo. Para una demo publicada o produccion, deben reemplazarse.
 
+## Dataset simulado para APF3
+
+El seed inicial (`npm run seed`) crea solo 2 clientes de prueba. Para generar un dataset de 150+ clientes con interacciones realistas, distribucion de canales, preferencias y etiquetas de churn (listo para el Paso 2 de APF3):
+
+```bash
+cd backend
+npm run seed:apf3
+```
+
+Esto puebla la base de datos con:
+- **150 clientes** con nombres, canales, productos favoritos y alergias variados
+- **3-12 interacciones por cliente** (promedio ~7), con fechas distribuidas en los ultimos 90 dias
+- **~20% con churn_label=1** (cliente inactivo >30 dias)
+- Casos realistas: clientes nuevos (0 interacciones), atenciones en seguimiento, pendientes y resueltas
+- 1 administrador y 7 colaboradores de prueba (clave `puku2026`)
+
+> **Nota:** Si el dataset real de uso del sistema aun no alcanza 200 filas, el seed `seed-apf3.js` genera datos simulados complementarios. Este supuesto fue documentado en APF2 y sigue siendo valido para APF3. Declarar entre corchetes en el informe.
+
+El endpoint `GET /api/reportes/export-apf3.csv` reflejara automaticamente los nuevos datos.
+
 ## Entregables APF3 relacionados
 
 - `checklist.md`: casos de prueba manual para login, consentimiento, atencion y CSV.

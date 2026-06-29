@@ -74,6 +74,14 @@ export const api = {
   cerrarInteraccion: (interaccionId, datos) =>
     request(`/interacciones/${interaccionId}/cerrar`, { method: 'PATCH', body: datos }),
   clientesFrecuentes: (minVisitas = 3) => request(`/reportes/clientes-frecuentes?minVisitas=${minVisitas}`),
+  analytics: (params = {}) => {
+    const q = Object.entries(params)
+      .filter(([, v]) => v !== '' && v !== null && v !== undefined)
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`)
+      .join('&');
+    return request(`/reportes/analytics${q ? '?' + q : ''}`);
+  },
+  segmentacion: (k = 3) => request('/reportes/segmentacion', { method: 'POST', body: { k } }),
   exportarCsv: async () => {
     const res = await fetch(`${BASE_URL}/reportes/export-apf3.csv`, {
       headers: authHeaders(),

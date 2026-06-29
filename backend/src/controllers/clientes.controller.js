@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { calcularChurnLabel } = require('../utils/churn');
+const { calcularChurnLabel, calcularChurnScore } = require('../utils/churn');
 
 /**
  * GET /api/clientes/buscar?q=texto
@@ -139,10 +139,9 @@ async function obtenerDetalle(req, res, next) {
         : 0;
 
     const fechaUltima = cliente.interacciones[0]?.fecha || null;
-    const churnLabel = calcularChurnLabel(
-      fechaUltima,
-      Number(process.env.CHURN_INACTIVITY_DAYS || 30)
-    );
+    const DIAS = Number(process.env.CHURN_INACTIVITY_DAYS || 30);
+    const churnLabel = calcularChurnLabel(fechaUltima, DIAS);
+    const churnScore = calcularChurnScore(cliente.interacciones, DIAS);
 
     return res.json({
       ...cliente,
@@ -150,7 +149,37 @@ async function obtenerDetalle(req, res, next) {
         frecuenciaVisita: totalVisitas,
         ticketPromedioSoles,
         churnLabel,
+        churnScore,
       },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/clientes/:id/churn-score
+ * Devuelve el score continuo de churn (0-1) y sus factores por separado.
+ * Útil para el frontend (gauge visual) y para el notebook de APF3.
+ */
+async function obtenerChurnScore(req, res, next) {
+  try {
+    const { id } = req.params;
+    const cliente = await prisma.cliente.findUnique({
+      where: { id },
+      include: { interacciones: { orderBy: { fecha: 'desc' } } },
+    });
+    if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });
+
+    const DIAS = Number(process.env.CHURN_INACTIVITY_DAYS || 30);
+    const score = calcularChurnScore(cliente.interacciones, DIAS);
+    const label = calcularChurnLabel(cliente.interacciones[0]?.fecha, DIAS);
+
+    return res.json({
+      clienteId: id,
+      churnScore: score,
+      churnLabel: label,
+      totalInteracciones: cliente.interacciones.length,
     });
   } catch (err) {
     next(err);
@@ -180,4 +209,4 @@ async function actualizar(req, res, next) {
   }
 }
 
-module.exports = { buscar, crear, obtenerDetalle, actualizar };
+module.exports = { buscar, crear, obtenerDetalle, actualizar, obtenerChurnScore };

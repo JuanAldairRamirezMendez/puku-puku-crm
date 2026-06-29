@@ -10,7 +10,8 @@ Objetivo: verificar que el CRM sea reproducible y que los flujos criticos alimen
 | Docker Compose | Ejecutar `docker compose up -d` desde la raiz. | PostgreSQL queda activo en `localhost:5432`. | Aprobado en Codex: `github-puku-puku-crm-postgres-1` quedo en `0.0.0.0:5432->5432`. Se detuvo el servicio local `postgresql-x64-18` que ocupaba el puerto. |
 | Prisma schema | Ejecutar `cd backend` y `npx.cmd prisma validate`. | El esquema Prisma es valido. | Aprobado en Codex. |
 | Migraciones | Ejecutar `npm run prisma:migrate`. | Las tablas se crean sin errores. | Aprobado en Codex contra `127.0.0.1:5432`; Prisma reporto esquema sincronizado. |
-| Seed | Ejecutar `npm run seed`. | Se crean usuarios de prueba y datos iniciales. | Aprobado en Codex; credenciales de prueba intactas: `admin@pukupuku.pe` y `carla@pukupuku.pe` con clave `puku2026`. |
+| Seed inicial | Ejecutar `npm run seed`. | Se crean usuarios de prueba y datos iniciales (2 clientes). | Aprobado en Codex; credenciales de prueba intactas: `admin@pukupuku.pe` y `carla@pukupuku.pe` con clave `puku2026`. |
+| Seed APF3 | Ejecutar `npm run seed:apf3`. | Se crean 150+ clientes con interacciones realistas para el dataset ML. | Pendiente — ejecutar tras integrar ramas. |
 | Backend | Ejecutar `npm run dev`. | API disponible en `http://localhost:4000`. | Aprobado con smoke test temporal: `/api/health`, login admin y export CSV respondieron 200. |
 | Frontend | Ejecutar `npm run dev`. | Interfaz disponible en `http://localhost:5173`. | Pendiente de validacion visual manual en navegador local. |
 | Build frontend | Ejecutar `npm.cmd run build`. | Vite genera `dist/` sin errores. | Aprobado en Codex. |
