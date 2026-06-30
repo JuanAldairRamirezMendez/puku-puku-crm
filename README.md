@@ -128,6 +128,49 @@ CHURN_INACTIVITY_DAYS=30
 
 La contraseña `postgres` del compose y la clave `puku2026` del seed son valores locales de desarrollo. Para una demo publicada o produccion, deben reemplazarse.
 
+## Pipeline de Machine Learning (APF3)
+
+La carpeta `apf3/` contiene el pipeline ejecutable para la consigna de APF3:
+
+```
+apf3/
+├── requirements.txt        # pandas, numpy, scikit-learn, matplotlib, seaborn, requests
+├── pipeline_apf3.py        # Script Python (ejecutable de inicio a fin)
+└── APF3.ipynb              # Jupyter Notebook (mismo pipeline, celdas documentadas)
+```
+
+### Uso
+
+```bash
+cd apf3
+pip install -r requirements.txt
+
+# Opción 1: desde la API (backend corriendo en localhost:4000)
+python pipeline_apf3.py
+
+# Opción 2: desde archivo CSV local
+python pipeline_apf3.py --csv dataset_apf3_puku_puku.csv
+
+# Opción 3: Jupyter Notebook
+jupyter notebook APF3.ipynb
+```
+
+### Outputs
+
+El pipeline genera en `apf3/output/`:
+- `eda.png` — Distribuciones exploratorias
+- `correlacion.png` — Matriz de correlación
+- `roc_regresión_logística.png`, `roc_random_forest.png` — Curvas ROC
+- `comparacion_modelos.csv` — Accuracy, precisión, recall, F1, AUC-ROC de ambos modelos
+- `feature_importance.png` — Importancia de variables (Random Forest)
+- `codo_kmeans.png`, `segmentos_scatter.png` — Gráficos de segmentación
+- `segmentos.csv` — Dataset original con columna `segmento` asignada
+- `informe_reproducibilidad.txt` — Resumen con parámetros y resultados
+
+**Random state fijo:** `42` en train/test split, modelos y K-Means (`n_init=10`).
+
+**Carga con fallback:** intenta la API primero; si no hay backend, busca un CSV local; si no hay CSV, genera un dataset simulado de 200 filas con `numpy.random.default_rng(42)`.
+
 ## Dataset simulado para APF3
 
 El seed inicial (`npm run seed`) crea solo 2 clientes de prueba. Para generar un dataset de 150+ clientes con interacciones realistas, distribucion de canales, preferencias y etiquetas de churn (listo para el Paso 2 de APF3):

@@ -11,3 +11,5 @@ graphify-out/
 backend/graphify-out/
 .graphifyignore
 .opencode/
+apf3/output/
+
