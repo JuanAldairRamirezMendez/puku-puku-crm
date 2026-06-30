@@ -4,6 +4,9 @@ import Pantalla3PostAtencion from './Pantalla3PostAtencion.jsx';
 
 const CANALES = ['PRESENCIAL', 'WHATSAPP', 'INSTAGRAM', 'RAPPI', 'PEDIDOSYA'];
 
+// Cuántas interacciones se muestran por página en el feed
+const ITEMS_POR_PAGINA = 10;
+
 function formatearFecha(fechaISO) {
   return new Date(fechaISO).toLocaleString('es-PE', {
     day: '2-digit',
@@ -19,10 +22,15 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
   const [canalNuevaAtencion, setCanalNuevaAtencion] = useState('');
   const [interaccionEnCurso, setInteraccionEnCurso] = useState(null);
 
+  // [TAREA 4] Estado de paginación del feed cronológico
+  const [paginaFeed, setPaginaFeed] = useState(1);
+
   async function cargarCliente() {
     try {
       const data = await api.obtenerCliente(clienteId);
       setCliente(data);
+      // [TAREA 4] Resetear paginación al recargar cliente
+      setPaginaFeed(1);
     } catch (err) {
       setError(err.message);
     }
@@ -57,6 +65,20 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     .slice(0, 2)
     .join('');
 
+  const esChurn = cliente.metricas?.churnLabel === 1;
+  const churnScore = cliente.metricas?.churnScore ?? null;
+  const nivelScore = churnScore !== null
+    ? churnScore < 0.33 ? 'bajo'
+      : churnScore < 0.66 ? 'medio'
+      : 'alto'
+    : null;
+
+  // [TAREA 4] Slice del feed según la página actual
+  const totalInteracciones = cliente.interacciones.length;
+  const totalPaginas = Math.ceil(totalInteracciones / ITEMS_POR_PAGINA);
+  const interaccionesPaginadas = cliente.interacciones.slice(0, paginaFeed * ITEMS_POR_PAGINA);
+  const hayMas = paginaFeed < totalPaginas;
+
   return (
     <div>
       <button className="btn-secundario" onClick={onVolver} style={{ marginBottom: 16 }}>
@@ -66,6 +88,30 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
       <div className="layout-cliente">
         {/* Tarjeta de cliente */}
         <div className="card">
+          {/*
+            [TAREA 1] Badge de riesgo de abandono visible apenas se abre el historial.
+            Se muestra arriba del avatar para que el colaborador lo vea de inmediato,
+            sin tener que bajar al reporte de frecuentes.
+          */}
+          {esChurn && (
+            <div
+              style={{
+                backgroundColor: 'var(--color-danger)',
+                color: '#fff',
+                borderRadius: 6,
+                padding: '6px 10px',
+                fontSize: '0.78rem',
+                fontWeight: 600,
+                marginBottom: 10,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+              }}
+            >
+              ⚠ Cliente en riesgo de abandono — ofrecer incentivo de retención
+            </div>
+          )}
+
           <div className="avatar-circulo">{iniciales}</div>
           <h2 style={{ fontFamily: 'var(--font-display)', margin: '12px 0 4px' }}>
             {cliente.nombreCompleto}
@@ -94,6 +140,26 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
               <div className="etiqueta">Ticket prom.</div>
             </div>
           </div>
+
+          {churnScore !== null && (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: 4 }}>
+                <span style={{ color: 'var(--color-brown-700)' }}>Riesgo de churn</span>
+                <span style={{ fontWeight: 700, color: nivelScore === 'alto' ? 'var(--color-danger)' : nivelScore === 'medio' ? 'var(--color-warning)' : 'var(--color-success)' }}>
+                  {nivelScore === 'alto' ? `⚠ ${(churnScore * 100).toFixed(0)}%` : nivelScore === 'medio' ? `◷ ${(churnScore * 100).toFixed(0)}%` : `✓ ${(churnScore * 100).toFixed(0)}%`}
+                </span>
+              </div>
+              <div style={{ height: 6, background: 'var(--color-sand)', borderRadius: 999, overflow: 'hidden' }}>
+                <div style={{
+                  height: '100%',
+                  width: `${(churnScore * 100).toFixed(0)}%`,
+                  background: churnScore < 0.33 ? 'var(--color-success)' : churnScore < 0.66 ? 'var(--color-warning)' : 'var(--color-danger)',
+                  borderRadius: 999,
+                  transition: 'width 0.4s ease',
+                }} />
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Historial */}
@@ -123,9 +189,14 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             Historial de interacciones
           </h3>
 
-          {cliente.interacciones.length === 0 && <p>Aún no hay interacciones registradas.</p>}
+          {totalInteracciones === 0 && <p>Aún no hay interacciones registradas.</p>}
 
-          {cliente.interacciones.map((i) => (
+          {/*
+            [TAREA 4] Se muestran solo `paginaFeed * ITEMS_POR_PAGINA` items.
+            El botón "Ver más" carga el siguiente bloque sin desmontar los ya visibles,
+            evitando scroll pérdido y manteniendo el feed legible con 200+ registros.
+          */}
+          {interaccionesPaginadas.map((i) => (
             <div className="feed-item" key={i.id}>
               <div className="fila-superior">
                 <span style={{ fontSize: '0.8rem', color: 'var(--color-brown-700)' }}>
@@ -140,6 +211,16 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
               </div>
             </div>
           ))}
+
+          {hayMas && (
+            <button
+              className="btn-secundario"
+              style={{ marginTop: 12, width: '100%' }}
+              onClick={() => setPaginaFeed((p) => p + 1)}
+            >
+              Ver más ({totalInteracciones - paginaFeed * ITEMS_POR_PAGINA} restantes)
+            </button>
+          )}
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-const { calcularChurnLabel } = require('../utils/churn');
+const { calcularChurnLabel, calcularChurnScore } = require('../utils/churn');
 
 /**
  * GET /api/clientes/buscar?q=texto
@@ -11,18 +11,33 @@ async function buscar(req, res, next) {
     const q = (req.query.q || '').trim();
     if (!q) return res.json([]);
 
-    const clientes = await prisma.cliente.findMany({
-      where: {
-        OR: [
-          { nombreCompleto: { contains: q, mode: 'insensitive' } },
-          { telefono: { contains: q } },
-        ],
-      },
-      take: 10,
-      orderBy: { nombreCompleto: 'asc' },
-    });
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 10));
+    const skip = (page - 1) * limit;
 
-    return res.json(clientes);
+    const where = {
+      OR: [
+        { nombreCompleto: { contains: q, mode: 'insensitive' } },
+        { telefono: { contains: q } },
+      ],
+    };
+
+    const [clientes, total] = await Promise.all([
+      prisma.cliente.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { nombreCompleto: 'asc' },
+      }),
+      prisma.cliente.count({ where }),
+    ]);
+
+    return res.json({
+      data: clientes,
+      total,
+      page,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (err) {
     next(err);
   }
@@ -56,6 +71,17 @@ async function crear(req, res, next) {
       return res.status(400).json({
         error:
           'No se puede registrar al cliente sin su consentimiento explícito (Ley N.° 29733, art. 13°).',
+      });
+    }
+
+    // Validación previa: si el teléfono ya existe, se informa al colaborador
+    // con el nombre del cliente existente para evitar duplicados y permitir
+    // asociar la interacción al registro correcto.
+    const existente = await prisma.cliente.findUnique({ where: { telefono } });
+    if (existente) {
+      return res.status(409).json({
+        error: `Ya existe un cliente registrado con el teléfono ${telefono}: ${existente.nombreCompleto}.`,
+        clienteExistente: { id: existente.id, nombre: existente.nombreCompleto },
       });
     }
 
@@ -113,10 +139,9 @@ async function obtenerDetalle(req, res, next) {
         : 0;
 
     const fechaUltima = cliente.interacciones[0]?.fecha || null;
-    const churnLabel = calcularChurnLabel(
-      fechaUltima,
-      Number(process.env.CHURN_INACTIVITY_DAYS || 30)
-    );
+    const DIAS = Number(process.env.CHURN_INACTIVITY_DAYS || 30);
+    const churnLabel = calcularChurnLabel(fechaUltima, DIAS);
+    const churnScore = calcularChurnScore(cliente.interacciones, DIAS);
 
     return res.json({
       ...cliente,
@@ -124,7 +149,37 @@ async function obtenerDetalle(req, res, next) {
         frecuenciaVisita: totalVisitas,
         ticketPromedioSoles,
         churnLabel,
+        churnScore,
       },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/clientes/:id/churn-score
+ * Devuelve el score continuo de churn (0-1) y sus factores por separado.
+ * Útil para el frontend (gauge visual) y para el notebook de APF3.
+ */
+async function obtenerChurnScore(req, res, next) {
+  try {
+    const { id } = req.params;
+    const cliente = await prisma.cliente.findUnique({
+      where: { id },
+      include: { interacciones: { orderBy: { fecha: 'desc' } } },
+    });
+    if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });
+
+    const DIAS = Number(process.env.CHURN_INACTIVITY_DAYS || 30);
+    const score = calcularChurnScore(cliente.interacciones, DIAS);
+    const label = calcularChurnLabel(cliente.interacciones[0]?.fecha, DIAS);
+
+    return res.json({
+      clienteId: id,
+      churnScore: score,
+      churnLabel: label,
+      totalInteracciones: cliente.interacciones.length,
     });
   } catch (err) {
     next(err);
@@ -154,4 +209,4 @@ async function actualizar(req, res, next) {
   }
 }
 
-module.exports = { buscar, crear, obtenerDetalle, actualizar };
+module.exports = { buscar, crear, obtenerDetalle, actualizar, obtenerChurnScore };

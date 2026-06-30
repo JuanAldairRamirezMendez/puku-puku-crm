@@ -1,65 +1,213 @@
-# Puku Puku CRM — Panel de Atención Unificado
+# Puku Puku CRM - Panel de Atencion Unificado
 
-Implementación full-stack del prototipo diseñado en el **APF2** (Design Thinking + Scrum)
-para LA CÁPSULA S.A.C. / PUKU PUKU. Reemplaza/complementa el piloto en HubSpot Free con
-un sistema propio: **Express.js + PostgreSQL (Prisma) + React**.
+Implementacion full-stack del prototipo disenado en el APF2 para LA CAPSULA S.A.C. / PUKU PUKU. El sistema complementa el piloto en HubSpot Free con una aplicacion propia basada en Express.js, PostgreSQL, Prisma y React.
 
 ## Estructura
 
-```
+```text
 puku-puku-crm/
 ├── docker-compose.yml      # PostgreSQL local
-├── backend/                # API REST (Express + Prisma)
+├── backend/                # API REST Express + Prisma
 │   ├── prisma/schema.prisma
 │   ├── prisma/seed.js
-│   └── src/...
-└── frontend/               # Las 3 pantallas del prototipo (React + Vite)
-    └── src/...
+│   └── src/
+├── frontend/               # Pantallas del prototipo APF2
+│   └── src/
+└── checklist.md            # Pruebas manuales QA para APF3
 ```
 
-## Cómo correrlo
+## Requisitos
+
+- Node.js 18 o superior.
+- Docker Desktop iniciado.
+- Git.
+
+En Windows PowerShell, si `npm` o `npx` se bloquean por politica de ejecucion, usar `npm.cmd` y `npx.cmd`.
+
+## Configuracion inicial
 
 ### 1. Base de datos
+
 ```bash
-docker compose up -d        # levanta PostgreSQL en localhost:5432
+docker compose up -d
 ```
 
+Esto levanta PostgreSQL en `localhost:5432`.
+
+Si aparece un conflicto por un contenedor existente llamado `puku_puku_db`, actualizar el repositorio y volver a ejecutar el comando. El `docker-compose.yml` actual ya no fija `container_name`, para evitar choques entre copias locales del proyecto.
+
+Si el puerto `5432` ya esta ocupado por otro PostgreSQL local, detener ese servicio antes de levantar Docker. En Windows puede aparecer como `postgresql-x64-18 - PostgreSQL Server 18`.
+
+Como alternativa temporal, en PowerShell se puede levantar esta copia en otro puerto:
+
+```powershell
+$env:POSTGRES_PORT = "5433"
+docker compose up -d
+```
+
+En ese caso, cambiar tambien `DATABASE_URL` y `DIRECT_URL` en `backend/.env` para usar `localhost:5433`.
+
 ### 2. Backend
+
 ```bash
 cd backend
-cp .env.example .env        # ajusta JWT_SECRET si quieres
+cp .env.example .env
 npm install
-npm run prisma:migrate      # crea las tablas
-npm run seed                # usuarios y cliente de prueba
-npm run dev                 # http://localhost:4000
+npm run prisma:migrate
+npm run seed
+npm run dev
 ```
-Credenciales de prueba (creadas por el seed):
+
+API local: `http://localhost:4000`.
+
+Credenciales de prueba creadas por el seed:
+
 - Admin: `admin@pukupuku.pe` / `puku2026`
 - Colaborador: `carla@pukupuku.pe` / `puku2026`
 
 ### 3. Frontend
+
+En otra terminal:
+
 ```bash
 cd frontend
 npm install
-npm run dev                 # http://localhost:5173 (proxy a la API en :4000)
+npm run dev
 ```
 
-## Mapeo Pantallas APF2 → Código
+Interfaz local: `http://localhost:5173`.
 
-| Pantalla APF2 | Backend | Frontend |
+## Verificacion rapida
+
+```bash
+cd backend
+npx prisma validate
+
+cd ../frontend
+npm run build
+```
+
+Validacion de integracion ejecutada en Codex para la rama de Peter:
+
+- Docker Compose: PostgreSQL publicado en `localhost:5432`.
+- Prisma migrate: esquema sincronizado contra `127.0.0.1:5432`.
+- Seed: usuarios de prueba creados sin cambiar credenciales del equipo.
+- Backend: tests Jest `12/12` y smoke test de health/login/export CSV aprobados.
+- Frontend: `npm.cmd run build` aprobado.
+
+## Mapeo APF2 a codigo
+
+| Pantalla / flujo | Backend | Frontend |
 |---|---|---|
-| 1. Búsqueda y registro | `clientes.controller.js` (`buscar`, `crear`) | `Pantalla1Registro.jsx` |
-| 2. Historial de interacciones | `clientes.controller.js` (`obtenerDetalle`) | `Pantalla2Historial.jsx` |
-| 3. Registro post-atención | `interacciones.controller.js` (`cerrar`) | `Pantalla3PostAtencion.jsx` |
-| US04 Reporte clientes frecuentes | `reportes.controller.js` | `PantallaFrecuentes.jsx` |
-| Puente a APF3 (dataset ML) | `GET /api/reportes/export-apf3.csv` | — (se descarga y se usa en el notebook Python) |
+| Login | `auth.controller.js` | `LoginForm.jsx` |
+| Pantalla 1 - Busqueda y registro | `clientes.controller.js` | `Pantalla1Registro.jsx` |
+| Pantalla 2 - Historial | `clientes.controller.js` | `Pantalla2Historial.jsx` |
+| Pantalla 3 - Cierre post-atencion | `interacciones.controller.js` | `Pantalla3PostAtencion.jsx` |
+| Reporte clientes frecuentes | `reportes.controller.js` | `PantallaFrecuentes.jsx` |
+| Dataset APF3 | `GET /api/reportes/export-apf3.csv` | Descarga CSV para notebook ML |
 
-## Cumplimiento normativo embebido (Ley N.° 29733)
-- El endpoint `POST /api/clientes` **rechaza** el registro si `consentimientoLey29733 !== true` (replica el bloqueo del botón "Guardar" del prototipo en papel).
-- Autenticación JWT + control de acceso por rol (`requireRole`) en rutas de reportes y administración.
-- `twoFactorEnabled` ya modelado en `Usuario` para activar 2FA real (TOTP) como siguiente iteración.
+## Cumplimiento Ley N. 29733
 
-## Siguiente paso natural (puente a APF3)
-`GET /api/reportes/export-apf3.csv` entrega exactamente las columnas que pide la consigna de
-APF3 (`frecuencia_visita`, `ticket_promedio_soles`, `canal_origen`, `producto_favorito`,
-`churn_label`), listas para cargarse con `pandas` en el notebook de K-Means / clasificación.
+- `POST /api/clientes` debe rechazar registros cuando `consentimientoLey29733 !== true`.
+- El consentimiento se registra con fecha para trazabilidad.
+- Las rutas protegidas usan JWT y control de rol.
+- `JWT_SECRET` y `DATABASE_URL` deben vivir solo en `.env` local o variables del servidor.
+- No se debe subir `backend/.env` al repositorio.
+
+## Variables de entorno
+
+Copiar `backend/.env.example` a `backend/.env` y ajustar:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/puku_puku_crm?schema=public"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5432/puku_puku_crm?schema=public"
+JWT_SECRET="reemplazar_por_un_secreto_largo_y_aleatorio"
+JWT_EXPIRES_IN="8h"
+CHURN_INACTIVITY_DAYS=30
+```
+
+La contraseña `postgres` del compose y la clave `puku2026` del seed son valores locales de desarrollo. Para una demo publicada o produccion, deben reemplazarse.
+
+## Pipeline de Machine Learning (APF3)
+
+La carpeta `apf3/` contiene el pipeline ejecutable para la consigna de APF3:
+
+```
+apf3/
+├── requirements.txt        # pandas, numpy, scikit-learn, matplotlib, seaborn, requests
+├── pipeline_apf3.py        # Script Python (ejecutable de inicio a fin)
+└── APF3.ipynb              # Jupyter Notebook (mismo pipeline, celdas documentadas)
+```
+
+### Uso
+
+```bash
+cd apf3
+pip install -r requirements.txt
+
+# Opción 1: desde la API (backend corriendo en localhost:4000)
+python pipeline_apf3.py
+
+# Opción 2: desde archivo CSV local
+python pipeline_apf3.py --csv dataset_apf3_puku_puku.csv
+
+# Opción 3: Jupyter Notebook
+jupyter notebook APF3.ipynb
+```
+
+### Outputs
+
+El pipeline genera en `apf3/output/`:
+- `eda.png` — Distribuciones exploratorias
+- `correlacion.png` — Matriz de correlación
+- `roc_regresión_logística.png`, `roc_random_forest.png` — Curvas ROC
+- `comparacion_modelos.csv` — Accuracy, precisión, recall, F1, AUC-ROC de ambos modelos
+- `feature_importance.png` — Importancia de variables (Random Forest)
+- `codo_kmeans.png`, `segmentos_scatter.png` — Gráficos de segmentación
+- `segmentos.csv` — Dataset original con columna `segmento` asignada
+- `informe_reproducibilidad.txt` — Resumen con parámetros y resultados
+
+**Random state fijo:** `42` en train/test split, modelos y K-Means (`n_init=10`).
+
+**Carga con fallback:** intenta la API primero; si no hay backend, busca un CSV local; si no hay CSV, genera un dataset simulado de 200 filas con `numpy.random.default_rng(42)`.
+
+## Dataset simulado para APF3
+
+El seed inicial (`npm run seed`) crea solo 2 clientes de prueba. Para generar un dataset de 150+ clientes con interacciones realistas, distribucion de canales, preferencias y etiquetas de churn (listo para el Paso 2 de APF3):
+
+```bash
+cd backend
+npm run seed:apf3
+```
+
+Esto puebla la base de datos con:
+- **150 clientes** con nombres, canales, productos favoritos y alergias variados
+- **3-12 interacciones por cliente** (promedio ~7), con fechas distribuidas en los ultimos 90 dias
+- **~20% con churn_label=1** (cliente inactivo >30 dias)
+- Casos realistas: clientes nuevos (0 interacciones), atenciones en seguimiento, pendientes y resueltas
+- 1 administrador y 7 colaboradores de prueba (clave `puku2026`)
+
+> **Nota:** Si el dataset real de uso del sistema aun no alcanza 200 filas, el seed `seed-apf3.js` genera datos simulados complementarios. Este supuesto fue documentado en APF2 y sigue siendo valido para APF3. Declarar entre corchetes en el informe.
+
+El endpoint `GET /api/reportes/export-apf3.csv` reflejara automaticamente los nuevos datos.
+
+## Entregables APF3 relacionados
+
+- `checklist.md`: casos de prueba manual para login, consentimiento, atencion y CSV.
+- `docs/anexo-uso-ia-apf3.md`: declaracion de uso de IA lista para pegar en el informe.
+- `GET /api/reportes/export-apf3.csv`: dataset con columnas para modelado ML.
+
+## Flujo Git recomendado
+
+```bash
+git checkout dev
+git pull origin dev
+git checkout -b feature/peter-devops-qa
+
+# despues de validar y documentar
+git add README.md checklist.md docs/anexo-uso-ia-apf3.md docker-compose.yml .gitignore backend/.env.example
+git commit -m "docs(devops): agregar QA y documentacion APF3"
+git push origin feature/peter-devops-qa
+```
+
+Abrir Pull Request hacia `dev`. La validacion final hacia `main` debe ejecutarse cuando las ramas `Juan`, `camilo` y `renzo` esten integradas en `dev`.

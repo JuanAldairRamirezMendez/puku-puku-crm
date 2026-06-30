@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { api, setToken } from '../api/client';
+import { api } from '../api/client';
 
 export default function LoginForm({ onLogin }) {
   const [email, setEmail] = useState('');
@@ -13,7 +13,6 @@ export default function LoginForm({ onLogin }) {
     setCargando(true);
     try {
       const data = await api.login(email, password);
-      setToken(data.token);
       onLogin(data.usuario);
     } catch (err) {
       setError(err.message);

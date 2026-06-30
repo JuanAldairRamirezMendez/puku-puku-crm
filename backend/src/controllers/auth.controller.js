@@ -68,4 +68,14 @@ async function registrar(req, res, next) {
   }
 }
 
-module.exports = { login, registrar };
+/**
+ * GET /api/auth/me
+ * Devuelve los datos del usuario autenticado (para verificar sesión al recargar).
+ */
+async function me(req, res) {
+  return res.json({
+    usuario: { id: req.usuario.id, nombre: req.usuario.nombre, rol: req.usuario.rol },
+  });
+}
+
+module.exports = { login, registrar, me };

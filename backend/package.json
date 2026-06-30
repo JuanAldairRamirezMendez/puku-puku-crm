@@ -4,16 +4,28 @@
   "description": "API REST del Panel de Atención Unificado — Puku Puku (APF2/APF3, Innovación y Transformación Digital, UTP 2026-1)",
   "main": "src/server.js",
   "type": "commonjs",
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "roots": ["<rootDir>/tests"],
+    "testMatch": ["**/*.test.js"],
+    "clearMocks": true,
+    "resetMocks": false
+  },
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:studio": "prisma studio",
-    "seed": "node prisma/seed.js"
+    "seed": "node prisma/seed.js",
+    "seed:apf3": "node prisma/seed-apf3.js",
+    "test": "jest --forceExit --detectOpenHandles"
   },
   "dependencies": {
-    "@prisma/client": "^5.20.0",
+    "@prisma/client": "^5.22.0",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -22,7 +34,9 @@
     "morgan": "^1.10.0"
   },
   "devDependencies": {
+    "jest": "^30.4.2",
     "nodemon": "^3.1.4",
-    "prisma": "^5.20.0"
+    "prisma": "^5.20.0",
+    "supertest": "^7.2.2"
   }
 }

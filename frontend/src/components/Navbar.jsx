@@ -17,6 +17,12 @@ export default function Navbar({ vista, onCambiarVista, usuario, onSalir }) {
         >
           Clientes frecuentes
         </button>
+        <button
+          className={vista === 'analytics' ? 'activo' : ''}
+          onClick={() => onCambiarVista('analytics')}
+        >
+          Analytics
+        </button>
       </nav>
       <div className="sesion">
         <span>{usuario?.nombre}</span>
