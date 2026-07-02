@@ -1252,6 +1252,337 @@ p.subtitulo-pantalla {
 }
 
 /* =================================================================
+   Responsive — Mobile first sobre escrituras
+   ================================================================= */
+
+/* Tablet y móvil (≤768px) */
+@media (max-width: 768px) {
+  .contenido {
+    padding: 16px;
+  }
+
+  /* Navbar */
+  .navbar {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+
+  .navbar .marca {
+    font-size: 1.05rem;
+  }
+
+  .navbar nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    gap: 4px;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .navbar nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .navbar nav button {
+    font-size: 0.78rem;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+
+  .navbar .sesion {
+    font-size: 0.78rem;
+    gap: 6px;
+  }
+
+  .navbar .sesion button {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+  }
+
+  .navbar .sesion span {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Títulos */
+  .p1-titulo {
+    font-size: 1.35rem;
+  }
+
+  h1.titulo-pantalla {
+    font-size: 1.35rem;
+  }
+
+  /* P1 KPIs: 3 → 2 columnas */
+  .p1-kpis {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .p1-kpi-card {
+    padding: 12px 10px;
+  }
+
+  .p1-kpi-num {
+    font-size: 1.2rem;
+  }
+
+  /* P1 CTA */
+  .p1-cta {
+    flex-wrap: wrap;
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .p1-cta-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .p1-cta-icono {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+
+  /* Resultados búsqueda */
+  .resultado-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .resultado-item div {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  /* P2 sidebar */
+  .p2-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .p2-sidebar {
+    padding: 18px 14px;
+  }
+
+  .p2-sb-nombre {
+    font-size: 1rem;
+  }
+
+  .p2-churn-pct {
+    font-size: 1.3rem;
+  }
+
+  /* Feed items */
+  .feed-item .fila-superior {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  /* Analytics grid */
+  .analytics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metrica-valor {
+    font-size: 1.4rem;
+  }
+
+  /* Filtros analytics */
+  .filtros-analytics {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 12px 14px;
+  }
+
+  /* Segmentacion */
+  .segmentacion-header {
+    flex-direction: column;
+  }
+
+  .segmentacion-controls {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .clusters-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Modal P3 */
+  .modal-cierre {
+    padding: 18px;
+    max-width: 100%;
+    margin: 0 8px;
+  }
+
+  .modal-cierre h2 {
+    font-size: 1rem;
+  }
+
+  .iconos-satisfaccion button {
+    font-size: 1.3rem;
+    padding: 8px 0;
+  }
+
+  /* Ticket por canal */
+  .ticket-fila {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  /* Frecuentes header */
+  .p1-frec-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  /* Client feed en frecuentes */
+  .layout-cliente {
+    grid-template-columns: 1fr;
+  }
+
+  /* Churn contexto */
+  .p2-churn-contexto {
+    font-size: 0.72rem;
+  }
+
+  /* Factores */
+  .p2-factor {
+    font-size: 0.78rem;
+  }
+
+  .p2-accion-texto {
+    font-size: 0.78rem;
+  }
+
+  .p2-sb-kpi-valor {
+    font-size: 1rem;
+  }
+}
+
+/* Móvil pequeño (≤480px) */
+@media (max-width: 480px) {
+  .contenido {
+    padding: 12px;
+  }
+
+  .navbar {
+    padding: 8px 12px;
+  }
+
+  .navbar .marca {
+    font-size: 0.95rem;
+  }
+
+  .p1-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .p1-search-input {
+    padding: 12px 14px 12px 42px;
+    font-size: 0.92rem;
+  }
+
+  .p1-search-icon {
+    left: 14px;
+    width: 16px;
+    height: 16px;
+  }
+
+  .p1-subtitulo {
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+  }
+
+  .p1-chip {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+  }
+
+  .card {
+    padding: 16px;
+  }
+
+  .metricas-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .canal-selector button {
+    font-size: 0.75rem;
+    padding: 5px 10px;
+  }
+
+  .btn-principal {
+    font-size: 0.85rem;
+    padding: 10px 18px;
+  }
+
+  .btn-secundario {
+    font-size: 0.85rem;
+    padding: 9px 16px;
+  }
+
+  .login-card {
+    padding: 24px 20px;
+  }
+
+  .login-card .marca {
+    font-size: 1.3rem;
+  }
+
+  .cluster-metrics {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .p2-sb-kpis {
+    gap: 6px;
+  }
+
+  .p2-sb-kpi {
+    padding: 8px 4px;
+  }
+
+  .p2-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 1.1rem;
+  }
+
+  .heatmap-header {
+    display: none;
+  }
+
+  .heatmap-fila {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+
+  .heatmap-row-label {
+    width: 100%;
+    font-size: 0.72rem;
+    padding: 4px 0;
+  }
+
+  .heatmap-celda {
+    min-width: 40px;
+    height: 30px;
+    font-size: 0.72rem;
+  }
+}
+
+/* =================================================================
    Print / PDF export
    ================================================================= */
 @media print {
