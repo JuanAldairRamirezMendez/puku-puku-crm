@@ -1,7 +1,7 @@
 """
 =============================================================================
-APF3 — Pipeline de Machine Learning: Churn y Segmentación
-Puku Puku CRM · Innovación y Transformación Digital · UTP 2026-1
+APF3 -- Pipeline de Machine Learning: Churn y Segmentación
+Puku Puku CRM * Innovación y Transformación Digital * UTP 2026-1
 =============================================================================
 
 Uso:
@@ -141,7 +141,7 @@ def eda(df):
 
     # ---- Gráficos ----
     fig, axes = plt.subplots(2, 3, figsize=(14, 8))
-    fig.suptitle("EDA — Puku Puku CRM | APF3", fontsize=14, fontweight="bold")
+    fig.suptitle("EDA -- Puku Puku CRM | APF3", fontsize=14, fontweight="bold")
 
     df["churn_label"].value_counts().plot(
         ax=axes[0, 0], kind="bar", color=["#4f7942", "#c1502e"], edgecolor="white"
@@ -241,11 +241,11 @@ def preprocesar(df):
 
 
 # =============================================================================
-# 4. MODELADO — CLASIFICACIÓN SUPERVISADA
+# 4. MODELADO -- CLASIFICACIÓN SUPERVISADA
 # =============================================================================
 def modelar(X_train, X_test, y_train, y_test, feature_cols):
     print("\n" + "=" * 60)
-    print("4. MODELADO — CLASIFICACIÓN SUPERVISADA")
+    print("4. MODELADO -- CLASIFICACIÓN SUPERVISADA")
     print("=" * 60)
 
     modelos = {
@@ -260,7 +260,7 @@ def modelar(X_train, X_test, y_train, y_test, feature_cols):
     resultados = []
 
     for nombre, modelo in modelos.items():
-        print(f"\n  ► {nombre}")
+        print(f"\n  >> {nombre}")
         modelo.fit(X_train, y_train)
         y_pred = modelo.predict(X_test)
 
@@ -286,7 +286,7 @@ def modelar(X_train, X_test, y_train, y_test, feature_cols):
 
         # Curva ROC
         RocCurveDisplay.from_estimator(modelo, X_test, y_test)
-        plt.title(f"Curva ROC — {nombre}")
+        plt.title(f"Curva ROC -- {nombre}")
         plt.tight_layout()
         plt.savefig(OUTPUT_DIR / f"roc_{nombre.replace(' ', '_').lower()}.png", dpi=150)
         plt.close()
@@ -310,7 +310,7 @@ def modelar(X_train, X_test, y_train, y_test, feature_cols):
 
     plt.figure(figsize=(7, 4))
     sns.barplot(data=importancias, x="importancia", y="feature", palette="BrBG")
-    plt.title("Importancia de features — Random Forest")
+    plt.title("Importancia de features -- Random Forest")
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "feature_importance.png", dpi=150)
     print(f"  Guardado: {OUTPUT_DIR / 'feature_importance.png'}")
@@ -324,7 +324,7 @@ def modelar(X_train, X_test, y_train, y_test, feature_cols):
 # =============================================================================
 def segmentar(df, feature_cols):
     print("\n" + "=" * 60)
-    print("5. SEGMENTACIÓN NO SUPERVISADA — K-MEANS")
+    print("5. SEGMENTACIÓN NO SUPERVISADA -- K-MEANS")
     print("=" * 60)
 
     X_seg = df[feature_cols].values
@@ -343,7 +343,7 @@ def segmentar(df, feature_cols):
     plt.plot(k_range, inercias, marker="o", color="#c1502e")
     plt.xlabel("k (clusters)")
     plt.ylabel("Inercia")
-    plt.title("Método del codo — K-Means")
+    plt.title("Método del codo -- K-Means")
     plt.grid(alpha=0.3)
     plt.tight_layout()
     plt.savefig(OUTPUT_DIR / "codo_kmeans.png", dpi=150)
@@ -356,10 +356,10 @@ def segmentar(df, feature_cols):
     km.fit(X_seg_sc)
     df["segmento"] = km.labels_
 
-    print(f"\n  K={k} — Perfiles de segmentos:")
+    print(f"\n  K={k} -- Perfiles de segmentos:")
     for seg in range(k):
         sub = df[df["segmento"] == seg]
-        print(f"\n  ► Segmento {seg} ({len(sub)} clientes, {len(sub)/len(df)*100:.1f}%)")
+        print(f"\n  >> Segmento {seg} ({len(sub)} clientes, {len(sub)/len(df)*100:.1f}%)")
         print(f"      Frecuencia prom.:  {sub['frecuencia_visita'].mean():.2f}")
         print(f"      Ticket prom.:      S/{sub['ticket_promedio_soles'].mean():.2f}")
         print(f"      Churn rate:        {sub['churn_label'].mean()*100:.1f}%")
@@ -400,7 +400,7 @@ def informe(df, df_result):
 
     lines = [
         "=" * 60,
-        "INFORME DE REPRODUCIBILIDAD — APF3 PUKU PUKU CRM",
+        "INFORME DE REPRODUCIBILIDAD -- APF3 PUKU PUKU CRM",
         f"Fecha: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M')}",
         f"Random state: {RANDOM_STATE}",
         "=" * 60,
@@ -413,15 +413,15 @@ def informe(df, df_result):
         df_result.round(4).to_string(),
         "",
         "Archivos generados en output/:",
-        "  eda.png                  — Distribuciones exploratorias",
-        "  correlacion.png          — Matriz de correlación",
-        "  roc_regresión_logística.png — Curva ROC (LogisticRegression)",
-        "  roc_random_forest.png      — Curva ROC (Random Forest)",
-        "  comparacion_modelos.csv  — Métricas de ambos modelos",
-        "  feature_importance.png   — Importancia de variables (RF)",
-        "  codo_kmeans.png          — Método del codo para K-Means",
-        "  segmentos.csv            — Dataset con columna segmento asignada",
-        "  segmentos_scatter.png    — Visualización de clusters",
+        "  eda.png                  -- Distribuciones exploratorias",
+        "  correlacion.png          -- Matriz de correlación",
+        "  roc_regresión_logística.png -- Curva ROC (LogisticRegression)",
+        "  roc_random_forest.png      -- Curva ROC (Random Forest)",
+        "  comparacion_modelos.csv  -- Métricas de ambos modelos",
+        "  feature_importance.png   -- Importancia de variables (RF)",
+        "  codo_kmeans.png          -- Método del codo para K-Means",
+        "  segmentos.csv            -- Dataset con columna segmento asignada",
+        "  segmentos_scatter.png    -- Visualización de clusters",
         "",
         "Nota: Este pipeline es reproducible ejecutando:",
         f"  python {Path(__file__).name}",
@@ -478,13 +478,13 @@ def exportar_modelo(modelos, scaler, le_canal, le_producto, feature_cols, df_res
 # MAIN
 # =============================================================================
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Pipeline APF3 — Churn y Segmentación")
+    parser = argparse.ArgumentParser(description="Pipeline APF3 -- Churn y Segmentación")
     parser.add_argument("--csv", help="Ruta a archivo CSV local (opcional)")
     parser.add_argument("--export", action="store_true", help="Exportar modelo entrenado a producción")
     args = parser.parse_args()
 
     print("=" * 60)
-    print("PUKU PUKU CRM — Pipeline de Machine Learning (APF3)")
+    print("PUKU PUKU CRM -- Pipeline de Machine Learning (APF3)")
     print("=" * 60)
     print(f"Random state: {RANDOM_STATE}")
 
@@ -499,4 +499,4 @@ if __name__ == "__main__":
 
     informe(df, df_result)
 
-    print("\n✓ Pipeline completado. Outputs en:", OUTPUT_DIR)
+    print("\n[OK] Pipeline completado. Outputs en:", OUTPUT_DIR)

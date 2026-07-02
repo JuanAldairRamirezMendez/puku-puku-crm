@@ -22,7 +22,8 @@
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
     "seed:apf3": "node prisma/seed-apf3.js",
-    "test": "jest --forceExit --detectOpenHandles"
+    "test": "jest --forceExit --detectOpenHandles",
+    "postinstall": "python -m pip install -q -r ../apf3/requirements.txt"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

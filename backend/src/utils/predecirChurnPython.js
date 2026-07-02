@@ -1,7 +1,7 @@
 const { execFile } = require('child_process');
 const path = require('path');
 
-const SCRIPT_DIR = path.resolve(__dirname, '../../apf3');
+const SCRIPT_DIR = path.resolve(__dirname, '../../../apf3');
 const PREDICT_SCRIPT = path.join(SCRIPT_DIR, 'predecir_churn.py');
 const MODEL_DIR = path.join(SCRIPT_DIR, 'model');
 

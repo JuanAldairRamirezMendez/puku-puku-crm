@@ -421,7 +421,7 @@ async function reentrenarModelo(req, res, next) {
     const data = await construirDataset();
     const fs = require('fs');
     const path = require('path');
-    const csvPath = path.resolve(__dirname, '../../apf3/dataset_crm_actual.csv');
+    const csvPath = path.resolve(__dirname, '../../../apf3/dataset_crm_actual.csv');
     const columnas = ['nombre', 'frecuencia_visita', 'ticket_promedio_soles', 'gasto_total_mensual_estimado', 'canal_origen', 'producto_favorito', 'churn_label', 'churn_score'];
     const csv = [columnas.join(',')];
     for (const r of data) {
@@ -436,7 +436,7 @@ async function reentrenarModelo(req, res, next) {
     return res.json({
       mensaje: 'Modelo reentrenado exitosamente.',
       clientes: data.length,
-      log: result.stdout.split('\n').filter((l) => l.startsWith('  ►') || l.includes('Accuracy') || l.includes('Guardado')).slice(0, 20),
+      log: result.stdout.split('\n').filter((l) => l.startsWith('  >>') || l.includes('Accuracy') || l.includes('Guardado')).slice(0, 20),
     });
   } catch (err) {
     next(err);
