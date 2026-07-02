@@ -1,0 +1,161 @@
+nombre,frecuencia_visita,ticket_promedio_soles,canal_origen,producto_favorito,churn_label,churn_score
+Ana Torres,5,34.5,INSTAGRAM,Flat white sin azúcar,0,0.1983
+Carlos Ruiz,0,28,RAPPI,Matcha latte,1,0.7
+Lucía Mendoza,14,24,RAPPI,Cappuccino clásico,0,0.23
+Miguel Ángel Paredes,2,25.5,WHATSAPP,Flat white sin azúcar,0,0.64
+Sofía Castillo,0,48,PEDIDOSYA,Chocolate caliente,1,0.68
+Diego Ramos,10,20.7,PRESENCIAL,Flat white sin azúcar,0,0.35
+Valeria Gutiérrez,4,30.5,PEDIDOSYA,Latte caramel,0,0.56
+Felipe Quispe,8,24,WHATSAPP,Café con leche,0,0.42
+Camila Huamán,2,29.5,RAPPI,Jugo de naranja natural,0,0.63
+Jorge Lozano,14,30.29,PRESENCIAL,Café con leche,0,0.22
+María Fernanda Ríos,2,23.5,PRESENCIAL,Chai latte,0,0.64
+Pedro Sánchez,5,27,INSTAGRAM,Cappuccino clásico,0,0.53
+Ximena Vásquez,2,15.5,WHATSAPP,Matcha latte,0,0.65
+Andrés García,10,24.2,PRESENCIAL,Alfajor de lucma,0,0.35
+Gabriela Puma,9,20.56,INSTAGRAM,Flat white sin azúcar,0,0.39
+Luis Fernando Tapia,5,38.2,PRESENCIAL,Jugo de naranja natural,0,0.51
+Carolina Salazar,7,36.14,WHATSAPP,Flat white sin azúcar,1,0.44
+Renato Vargas,9,26.78,RAPPI,Alfajor de lucma,0,0.38
+Bianca Guerrero,4,28,WHATSAPP,Matcha latte,0,0.56
+Sebastián Roca,10,24,INSTAGRAM,Flat white sin azúcar,0,0.35
+Alejandra Rivas,8,30.75,RAPPI,Flat white sin azúcar,0,0.41
+Franco Cárdenas,13,27.77,RAPPI,Cappuccino clásico,0,0.25
+Daniela Chirinos,14,29.43,RAPPI,Té chai,0,0.22
+Eduardo Navarro,3,19.33,RAPPI,Matcha latte,0,0.61
+Paola Zegarra,10,25.8,RAPPI,Mocha,1,0.35
+Fernando Calderón,7,25.57,PRESENCIAL,Chocolate caliente,0,0.46
+Andrea Benavides,1,22,WHATSAPP,Smoothie de maracuyá,1,0.68
+Rodrigo Molina,2,24,INSTAGRAM,Café con leche,0,0.64
+Claudia Palacios,6,25.83,RAPPI,Americano,0,0.49
+Emilio Herrera,8,29,INSTAGRAM,Chocolate caliente,1,0.41
+Lorena Ccora,10,23,PEDIDOSYA,Chocolate caliente,0,0.35
+Hugo Martínez,7,26.86,PEDIDOSYA,Mocha,1,0.45
+Rosa Huamán,13,26.69,RAPPI,Americano,0,0.25
+Iván Pacheco,3,28.67,WHATSAPP,Americano,0,0.6
+Mónica Salas,7,22.57,PRESENCIAL,Matcha latte,1,0.46
+Javier Cuba,13,25.69,PEDIDOSYA,Jugo de naranja natural,1,0.25
+Angélica Condori,9,29.11,RAPPI,Americano,1,0.38
+Oscar Zamora,14,29,PEDIDOSYA,Matcha latte,1,0.22
+Patricia Llanos,6,24.17,RAPPI,Chocolate caliente,1,0.49
+Marco Alarcón,6,32.67,PEDIDOSYA,Matcha latte,0,0.48
+Katherine Paredes,2,29.5,PRESENCIAL,Mocha,0,0.63
+Gonzalo Quiroz,6,31.5,PRESENCIAL,Frappé de vainilla,0,0.49
+Natalia Flores,5,26.6,PEDIDOSYA,Matcha latte,0,0.53
+Cristian Velarde,11,28.64,WHATSAPP,Chai latte,0,0.31
+Diana Carpio,4,29,PRESENCIAL,Chai latte,0,0.56
+Víctor Huerta,4,21.5,PRESENCIAL,Chai latte,1,0.57
+Milagros Álvarez,7,30.29,INSTAGRAM,Chocolate caliente,0,0.45
+Alan Pozo,11,29.64,WHATSAPP,Espresso doble,0,0.31
+Stephanie Bellido,1,31,WHATSAPP,Smoothie de maracuyá,0,0.67
+Bryan Ccoyllo,13,29.46,PEDIDOSYA,Chocolate caliente,0,0.25
+María José Cuéllar,2,29,INSTAGRAM,Cappuccino clásico,0,0.64
+Raúl Mendoza,13,25.62,RAPPI,Alfajor de lucma,1,0.25
+Fiorella Carpio,11,29.18,RAPPI,Flat white sin azúcar,0,0.31
+Aldo Paredes,1,47,RAPPI,Jugo de naranja natural,0,0.65
+Cynthia Gálvez,0,9,WHATSAPP,Jugo de naranja natural,1,0.72
+Roberto Sosa,7,30.71,PRESENCIAL,Cappuccino clásico,0,0.45
+Pamela Ríos,0,33,PRESENCIAL,Chocolate caliente,1,0.7
+Jesús Huarcaya,0,37,INSTAGRAM,Mocha,1,0.69
+Melissa Ccora,6,25.83,PRESENCIAL,Cappuccino clásico,1,0.49
+Martín Zevallos,8,22.38,RAPPI,Chai latte,0,0.42
+Ana Torres 1,6,29.17,INSTAGRAM,Latte caramel,0,0.49
+Carlos Ruiz 1,2,25.5,WHATSAPP,Espresso doble,1,0.64
+Lucía Mendoza 1,3,19.33,WHATSAPP,Café con leche,0,0.61
+Miguel Ángel Paredes 1,9,25.56,PEDIDOSYA,Americano,0,0.38
+Sofía Castillo 1,12,30.25,RAPPI,Frappé de vainilla,1,0.28
+Diego Ramos 1,5,24.6,INSTAGRAM,Frappé de vainilla,0,0.53
+Valeria Gutiérrez 1,1,26,WHATSAPP,Chai latte,0,0.67
+Felipe Quispe 1,14,25.36,WHATSAPP,Smoothie de maracuyá,0,0.23
+Camila Huamán 1,8,21.38,PEDIDOSYA,Chai latte,0,0.42
+Jorge Lozano 1,10,23.2,PRESENCIAL,Frappé de vainilla,1,0.35
+María Fernanda Ríos 1,7,19.14,WHATSAPP,Latte caramel,0,0.46
+Pedro Sánchez 1,5,14,PEDIDOSYA,Americano,1,0.54
+Ximena Vásquez 1,8,22.88,PRESENCIAL,Mocha,0,0.42
+Andrés García 1,0,11,PRESENCIAL,Matcha latte,1,0.72
+Gabriela Puma 1,0,43,WHATSAPP,Flat white sin azúcar,1,0.69
+Luis Fernando Tapia 1,11,19.27,RAPPI,Alfajor de lucma,0,0.32
+Carolina Salazar 1,9,25.44,PRESENCIAL,Café con leche,1,0.38
+Renato Vargas 1,11,22,RAPPI,Flat white sin azúcar,1,0.32
+Bianca Guerrero 1,9,26.22,PEDIDOSYA,Smoothie de maracuyá,0,0.38
+Sebastián Roca 1,4,21.25,INSTAGRAM,Jugo de naranja natural,0,0.57
+Alejandra Rivas 1,9,30.22,WHATSAPP,Flat white sin azúcar,0,0.38
+Franco Cárdenas 1,9,18.11,WHATSAPP,Chai latte,0,0.39
+Daniela Chirinos 1,2,14,PRESENCIAL,Cappuccino clásico,0,0.65
+Eduardo Navarro 1,13,30.85,INSTAGRAM,Jugo de naranja natural,1,0.25
+Paola Zegarra 1,14,19.21,PEDIDOSYA,Cappuccino clásico,0,0.23
+Fernando Calderón 1,10,24,WHATSAPP,Latte caramel,0,0.35
+Andrea Benavides 1,8,32.38,RAPPI,Frappé de vainilla,0,0.41
+Rodrigo Molina 1,1,14,WHATSAPP,Americano,1,0.69
+Claudia Palacios 1,7,20.57,PEDIDOSYA,Café con leche,1,0.46
+Emilio Herrera 1,13,28.38,PEDIDOSYA,Cappuccino clásico,0,0.25
+Lorena Ccora 1,14,25.07,INSTAGRAM,Alfajor de lucma,0,0.23
+Hugo Martínez 1,14,27.36,RAPPI,Té chai,0,0.22
+Rosa Huamán 1,6,31.67,WHATSAPP,Smoothie de maracuyá,0,0.49
+Iván Pacheco 1,6,31.33,RAPPI,Chai latte,0,0.49
+Mónica Salas 1,3,42.33,PEDIDOSYA,Jugo de naranja natural,0,0.58
+Javier Cuba 1,12,21,PRESENCIAL,Chocolate caliente,1,0.29
+Angélica Condori 1,3,23,INSTAGRAM,Té chai,0,0.61
+Oscar Zamora 1,10,28.3,PRESENCIAL,Té chai,0,0.34
+Patricia Llanos 1,12,23.08,PEDIDOSYA,Alfajor de lucma,0,0.29
+Marco Alarcón 1,10,30.6,PEDIDOSYA,Smoothie de maracuyá,0,0.34
+Katherine Paredes 1,1,38,PRESENCIAL,Espresso doble,1,0.66
+Gonzalo Quiroz 1,14,25,INSTAGRAM,Mocha,0,0.23
+Natalia Flores 1,6,31.67,WHATSAPP,Chocolate caliente,0,0.49
+Cristian Velarde 1,5,28.2,PRESENCIAL,Café con leche,0,0.53
+Diana Carpio 1,3,26.33,PEDIDOSYA,Alfajor de lucma,0,0.6
+Víctor Huerta 1,12,30.5,RAPPI,Té chai,1,0.28
+Milagros Álvarez 1,11,31.36,INSTAGRAM,Alfajor de lucma,0,0.31
+Alan Pozo 1,3,28.67,RAPPI,Espresso doble,0,0.6
+Stephanie Bellido 1,2,12,PEDIDOSYA,Jugo de naranja natural,0,0.65
+Bryan Ccoyllo 1,5,34.8,RAPPI,Jugo de naranja natural,0,0.52
+María José Cuéllar 1,13,21.54,PEDIDOSYA,Latte caramel,0,0.26
+Raúl Mendoza 1,6,25.67,INSTAGRAM,Smoothie de maracuyá,0,0.49
+Fiorella Carpio 1,9,27,WHATSAPP,Flat white sin azúcar,0,0.38
+Aldo Paredes 1,5,24.8,INSTAGRAM,Flat white sin azúcar,0,0.53
+Cynthia Gálvez 1,14,28,PRESENCIAL,Cappuccino clásico,0,0.22
+Roberto Sosa 1,14,29.43,WHATSAPP,Flat white sin azúcar,1,0.22
+Pamela Ríos 1,13,31.46,RAPPI,Chai latte,1,0.25
+Jesús Huarcaya 1,3,26.33,RAPPI,Alfajor de lucma,1,0.6
+Melissa Ccora 1,12,23.67,PEDIDOSYA,Jugo de naranja natural,0,0.29
+Martín Zevallos 1,12,29.67,PRESENCIAL,Cappuccino clásico,0,0.28
+Ana Torres 2,8,35.5,RAPPI,Chocolate caliente,0,0.41
+Carlos Ruiz 2,2,21.5,INSTAGRAM,Frappé de vainilla,1,0.64
+Lucía Mendoza 2,5,24.6,INSTAGRAM,Smoothie de maracuyá,0,0.53
+Miguel Ángel Paredes 2,5,24,PRESENCIAL,Jugo de naranja natural,0,0.53
+Sofía Castillo 2,2,25.5,RAPPI,Cappuccino clásico,0,0.64
+Diego Ramos 2,1,6,INSTAGRAM,Té chai,0,0.69
+Valeria Gutiérrez 2,7,24.29,PRESENCIAL,Frappé de vainilla,0,0.46
+Felipe Quispe 2,13,29.92,PRESENCIAL,Mocha,0,0.25
+Camila Huamán 2,8,26.5,RAPPI,Americano,0,0.42
+Jorge Lozano 2,12,25.08,PRESENCIAL,Chai latte,0,0.28
+María Fernanda Ríos 2,8,22.25,PEDIDOSYA,Frappé de vainilla,0,0.42
+Pedro Sánchez 2,1,13,PRESENCIAL,Jugo de naranja natural,0,0.69
+Ximena Vásquez 2,9,26.11,WHATSAPP,Té chai,1,0.38
+Andrés García 2,13,33.62,WHATSAPP,Té chai,0,0.25
+Gabriela Puma 2,9,37.78,WHATSAPP,Americano,0,0.37
+Luis Fernando Tapia 2,2,29,RAPPI,Chai latte,0,0.64
+Carolina Salazar 2,3,24.33,RAPPI,Té chai,0,0.61
+Renato Vargas 2,6,24.17,PRESENCIAL,Mocha,1,0.49
+Bianca Guerrero 2,11,24.36,RAPPI,Jugo de naranja natural,0,0.32
+Sebastián Roca 2,8,25.75,RAPPI,Chai latte,1,0.42
+Alejandra Rivas 2,11,26.55,INSTAGRAM,Mocha,0,0.31
+Franco Cárdenas 2,2,25,PEDIDOSYA,Chai latte,1,0.64
+Daniela Chirinos 2,3,19.67,WHATSAPP,Frappé de vainilla,0,0.61
+Eduardo Navarro 2,2,35.5,PEDIDOSYA,Chocolate caliente,0,0.63
+Paola Zegarra 2,5,27.4,PEDIDOSYA,Café con leche,0,0.53
+Fernando Calderón 2,9,23.78,INSTAGRAM,Matcha latte,0,0.38
+Andrea Benavides 2,7,18.43,RAPPI,Alfajor de lucma,0,0.46
+Rodrigo Molina 2,13,21.08,PRESENCIAL,Té chai,1,0.26
+Claudia Palacios 2,5,19.8,RAPPI,Matcha latte,1,0.54
+Emilio Herrera 2,11,28.27,WHATSAPP,Flat white sin azúcar,0,0.31
+Lorena Ccora 2,0,38,RAPPI,Matcha latte,1,0.69
+Hugo Martínez 2,13,26.54,PEDIDOSYA,Alfajor de lucma,0,0.25
+Rosa Huamán 2,13,28.31,PRESENCIAL,Jugo de naranja natural,1,0.25
+Iván Pacheco 2,12,32.83,RAPPI,Espresso doble,0,0.28
+Mónica Salas 2,11,30.91,PEDIDOSYA,Chocolate caliente,0,0.31
+Javier Cuba 2,9,28.78,PEDIDOSYA,Jugo de naranja natural,0,0.38
+Angélica Condori 2,8,22.38,PEDIDOSYA,Cappuccino clásico,0,0.42
+Oscar Zamora 2,1,28,WHATSAPP,Chai latte,0,0.67
+Patricia Llanos 2,9,23.33,PEDIDOSYA,Espresso doble,0,0.39
+Marco Alarcón 2,1,25,WHATSAPP,Smoothie de maracuyá,1,0.67

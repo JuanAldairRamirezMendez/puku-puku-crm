@@ -69,6 +69,7 @@ export const api = {
   buscarClientes: (q) => request(`/clientes/buscar?q=${encodeURIComponent(q)}`),
   crearCliente: (datos) => request('/clientes', { method: 'POST', body: datos }),
   obtenerCliente: (id) => request(`/clientes/${id}`),
+  obtenerChurnScore: (id) => request(`/clientes/${id}/churn-score`),
   crearInteraccion: (clienteId, datos) =>
     request(`/clientes/${clienteId}/interacciones`, { method: 'POST', body: datos }),
   cerrarInteraccion: (interaccionId, datos) =>
