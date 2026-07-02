@@ -6,7 +6,10 @@ const PREDICT_SCRIPT = path.join(SCRIPT_DIR, 'predecir_churn.py');
 const MODEL_DIR = path.join(SCRIPT_DIR, 'model');
 
 function getPythonCommand() {
-  return process.env.GRAPHIFY_PYTHON || 'python';
+  if (process.env.GRAPHIFY_PYTHON) return process.env.GRAPHIFY_PYTHON;
+  // Render/Linux usa python3; Windows usa python
+  try { require('child_process').execSync('python3 --version', { stdio: 'ignore' }); return 'python3'; }
+  catch { return 'python'; }
 }
 
 async function predecirChurn(input) {
@@ -19,7 +22,8 @@ async function predecirChurn(input) {
       env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
     }, (err, stdout, stderr) => {
       if (err) {
-        return reject(new Error(`Error ejecutando prediccion: ${err.message}`));
+        const detail = stderr ? `: ${stderr.trim().slice(0, 300)}` : '';
+        return reject(new Error(`Error ejecutando prediccion: ${err.message}${detail}`));
       }
       try {
         const result = JSON.parse(stdout.trim());
@@ -49,7 +53,8 @@ async function entrenarModelo() {
       timeout: 300000,
     }, (err, stdout, stderr) => {
       if (err) {
-        return reject(new Error(`Error entrenando modelo: ${err.message}`));
+        const detail = stderr ? `: ${stderr.trim().slice(0, 500)}` : '';
+        return reject(new Error(`Error entrenando modelo: ${err.message}${detail}`));
       }
       resolve({ stdout, stderr });
     });
