@@ -80,62 +80,85 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     const score = cliente.metricas?.churnScore ?? 0;
     const nivel = score < 0.33 ? 'bajo' : score < 0.66 ? 'medio' : 'alto';
 
+    // ML prediction
+    const mlScore = cliente.metricas?.mlScore ?? null;
+    const mlNivel = mlScore !== null ? (mlScore < 0.33 ? 'bajo' : mlScore < 0.66 ? 'medio' : 'alto') : null;
+    const mlTopFactores = cliente.metricas?.mlTopFactores ?? [];
+
+    // Use ML score if available, else heuristic
+    const displayScore = mlScore ?? score;
+    const displayNivel = mlNivel ?? nivel;
+
     // Factores
     const factores = [];
 
-    // Recencia
-    if (ultima) {
-      factores.push({
-        icono: '🕐',
-        texto: `${diffDias} días sin visitar` + (n >= 3 ? ` (antes: cada ${Math.round(ints.slice(0, 3).reduce((s, x, i, a) => s + diasDesde(x.fecha) / Math.max(1, a.length - 1), 0))} días)` : ''),
-        severidad: diffDias > 30 ? 'alta' : diffDias > 14 ? 'media' : 'baja',
-      });
-    } else {
-      factores.push({ icono: '🕐', texto: 'Sin visitas registradas', severidad: 'alta' });
-    }
-
-    // Frecuencia
-    const freqRiesgo = Math.max(0, 1 - n / 20);
-    factores.push({
-      icono: '📊',
-      texto: `${n} visitas en total${n < 3 ? ' — muy pocas para generar hábito' : n < 6 ? ' — ritmo moderado' : ' — buena consistencia'}`,
-      severidad: freqRiesgo > 0.5 ? 'alta' : freqRiesgo > 0.2 ? 'media' : 'baja',
-    });
-
-    // Ticket promedio
-    const conMonto = ints.filter((i) => i.montoSoles !== null);
-    const avgTicket = conMonto.length > 0 ? conMonto.reduce((s, i) => s + Number(i.montoSoles), 0) / conMonto.length : 0;
-    if (conMonto.length >= 2) {
-      const recienteAvg = conMonto.slice(0, Math.min(3, conMonto.length)).reduce((s, i) => s + Number(i.montoSoles), 0) / Math.min(3, conMonto.length);
-      const antiguoAvg = conMonto.slice(-3).reduce((s, i) => s + Number(i.montoSoles), 0) / Math.min(3, conMonto.length);
-      if (antiguoAvg > 0 && recienteAvg < antiguoAvg * 0.85) {
+    // ML-based factors (most important)
+    if (mlTopFactores.length > 0) {
+      for (const f of mlTopFactores.slice(0, 3)) {
+        const nombresFactor = {
+          recency_dias: 'Días desde última visita',
+          freq_semanal: 'Frecuencia semanal',
+          freq_total: 'Visitas totales',
+          ticket_promedio: 'Ticket promedio',
+          ticket_total: 'Gasto total',
+          ticket_max: 'Ticket máximo',
+          ticket_trend: 'Tendencia de gasto',
+          diversidad_canal: 'Diversidad de canales',
+          pct_insatisfecho: 'Insatisfacción general',
+          pct_insatisfecho_reciente: 'Insatisfacción reciente',
+          regularidad: 'Regularidad de visitas',
+          gap_mean: 'Intervalo promedio',
+          night_ratio: 'Horario nocturno',
+        };
         factores.push({
-          icono: '💰',
-          texto: `Ticket promedio bajó ${Math.round((1 - recienteAvg / antiguoAvg) * 100)}% en los últimos pedidos`,
-          severidad: 'media',
+          icono: '🤖',
+          texto: `${nombresFactor[f.nombre] || f.nombre}: ${f.valor}`,
+          severidad: f.valor > 0.5 ? 'alta' : f.valor > 0.2 ? 'media' : 'baja',
         });
       }
     }
 
-    // Canal único
-    const canales = new Set(ints.map((i) => i.canal));
-    if (canales.size === 1 && n > 1) {
-      factores.push({
-        icono: '📱',
-        texto: `Canal único: ${[...canales][0]} — sin diversificación de contacto`,
-        severidad: 'media',
-      });
-    }
+    // Restored heuristic factors (if no ML)
+    if (mlTopFactores.length === 0) {
+      // Recencia
+      if (ultima) {
+        factores.push({
+          icono: '🕐',
+          texto: `${diffDias} días sin visitar`,
+          severidad: diffDias > 30 ? 'alta' : diffDias > 14 ? 'media' : 'baja',
+        });
+      } else {
+        factores.push({ icono: '🕐', texto: 'Sin visitas registradas', severidad: 'alta' });
+      }
 
-    // Satisfacción
-    const recientes90 = ints.filter((i) => diasDesde(i.fecha) <= 90);
-    const insatisfechos = recientes90.filter((i) => i.satisfaccion === 'INSATISFECHO').length;
-    if (insatisfechos > 0) {
+      // Frecuencia
+      const freqRiesgo = Math.max(0, 1 - n / 20);
       factores.push({
-        icono: '😞',
-        texto: `${insatisfechos} atención(es) insatisfactoria(s) en los últimos 90 días`,
-        severidad: 'alta',
+        icono: '📊',
+        texto: `${n} visitas en total${n < 3 ? ' — muy pocas para generar hábito' : n < 6 ? ' — ritmo moderado' : ' — buena consistencia'}`,
+        severidad: freqRiesgo > 0.5 ? 'alta' : freqRiesgo > 0.2 ? 'media' : 'baja',
       });
+
+      // Canal único
+      const canales = new Set(ints.map((i) => i.canal));
+      if (canales.size === 1 && n > 1) {
+        factores.push({
+          icono: '📱',
+          texto: `Canal único: ${[...canales][0]} — sin diversificación de contacto`,
+          severidad: 'media',
+        });
+      }
+
+      // Satisfacción
+      const recientes90 = ints.filter((i) => diasDesde(i.fecha) <= 90);
+      const insatisfechos = recientes90.filter((i) => i.satisfaccion === 'INSATISFECHO').length;
+      if (insatisfechos > 0) {
+        factores.push({
+          icono: '😞',
+          texto: `${insatisfechos} atención(es) insatisfactoria(s) en los últimos 90 días`,
+          severidad: 'alta',
+        });
+      }
     }
 
     // Sparkline: visitas por semana (últimas 10 semanas)
@@ -154,9 +177,18 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
       semanas.push(count);
     }
 
-    // Acción sugerida
+    // Acción sugerida (ML-informed)
     let accion = '';
-    if (churnLabel === 1 && ultima) {
+    if (mlScore !== null && mlScore > 0.7) {
+      const topFactor = mlTopFactores[0];
+      if (topFactor?.nombre === 'recency_dias') {
+        accion = `ML detecta alto riesgo por inactividad. Enviar cupón de descuento por ${cliente.canalOrigen || 'WhatsApp'} para recuperar al cliente.`;
+      } else if (topFactor?.nombre?.includes('insatisfecho')) {
+        accion = `ML detecta insatisfacción como factor principal. Priorizar atención personalizada para resolver quejas.`;
+      } else {
+        accion = `ML predice ${(mlScore * 100).toFixed(0)}% de riesgo. Aplicar programa de fidelización urgente.`;
+      }
+    } else if (churnLabel === 1 && ultima) {
       accion = `Enviar cupón de descuento por ${cliente.canalOrigen} para recuperar al cliente (${diffDias} días inactivo).`;
     } else if (n < 3) {
       accion = `Ofrecer tarjeta de fidelidad en la próxima visita para incentivar recurrencia.`;
@@ -169,12 +201,13 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     const puntajeAnterior = churnLabel === 0 ? Math.max(0, score - 0.09) : Math.min(1, score + 0.05);
 
     return {
-      score, nivel, churnLabel, diffDias, n, avgTicket,
+      score: displayScore, nivel: displayNivel, churnLabel, diffDias, n, avgTicket,
       factores: factores.slice(0, 5),
       semanas,
       accion,
       tendencia: puntajeAnterior >= 0 ? `${score > puntajeAnterior ? 'sube' : 'baja'} vs mes anterior` : null,
       diffPts: Math.round(Math.abs(score - puntajeAnterior) * 100),
+      esML: mlScore !== null,
     };
   }, [cliente]);
 
@@ -278,6 +311,7 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
               </div>
               <p className="p2-churn-contexto">
                 {churnAnalysis.nivel === 'alto' ? 'Riesgo alto' : churnAnalysis.nivel === 'medio' ? 'Riesgo moderado' : 'Riesgo bajo'}
+                {churnAnalysis.esML && <span className="p2-chip-ml"> ML</span>}
                 {churnAnalysis.tendencia && ` · ${churnAnalysis.tendencia} (+${churnAnalysis.diffPts} pts)`}
               </p>
             </div>

@@ -12,4 +12,6 @@ backend/graphify-out/
 .graphifyignore
 .opencode/
 apf3/output/
+__pycache__/
+*.pyc
 

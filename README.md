@@ -128,9 +128,33 @@ CHURN_INACTIVITY_DAYS=30
 
 La contraseña `postgres` del compose y la clave `puku2026` del seed son valores locales de desarrollo. Para una demo publicada o produccion, deben reemplazarse.
 
-## Pipeline de Machine Learning (APF3)
+## Machine Learning Pipeline
 
-La carpeta `apf3/` contiene el pipeline ejecutable para la consigna de APF3:
+### Producción — `backend/ml/`
+
+La carpeta `backend/ml/` contiene el pipeline de producción para entrenamiento de modelos de churn desde la misma aplicación:
+
+```
+backend/ml/
+├── train.py                # Pipeline completo: 11 modelos, 20+ features, exporta a JSON
+├── requirements.txt        # numpy, pandas, scikit-learn, xgboost, lightgbm, joblib
+└── output/                 # Modelos entrenados y artefactos
+    ├── model.json          # Mejor modelo exportado (GradientBoosting / RandomForest)
+    ├── scaler.json         # Parámetros de normalización
+    ├── features.json       # Nombres de features
+    ├── results.json        # Resultados del último entrenamiento
+    └── pipeline.pkl        # Pipeline completo (joblib)
+```
+
+**Entrenamiento desde el frontend:** en la pantalla Analytics, sección "Entrenamiento ML — Churn Prediction", presionar "Entrenar modelo". El backend ejecuta `train.py` como subproceso y devuelve los resultados.
+
+**Endpoint API:** `POST /api/reportes/entrenar` (requiere rol ADMINISTRADOR o GERENTE).
+
+**Consultar estado:** `GET /api/reportes/entrenar/status`.
+
+### Académico — `apf3/`
+
+La carpeta `apf3/` contiene el pipeline ejecutable para la consigna académica de APF3:
 
 ```
 apf3/
@@ -138,8 +162,6 @@ apf3/
 ├── pipeline_apf3.py        # Script Python (ejecutable de inicio a fin)
 └── APF3.ipynb              # Jupyter Notebook (mismo pipeline, celdas documentadas)
 ```
-
-### Uso
 
 ```bash
 cd apf3
@@ -154,22 +176,6 @@ python pipeline_apf3.py --csv dataset_apf3_puku_puku.csv
 # Opción 3: Jupyter Notebook
 jupyter notebook APF3.ipynb
 ```
-
-### Outputs
-
-El pipeline genera en `apf3/output/`:
-- `eda.png` — Distribuciones exploratorias
-- `correlacion.png` — Matriz de correlación
-- `roc_regresión_logística.png`, `roc_random_forest.png` — Curvas ROC
-- `comparacion_modelos.csv` — Accuracy, precisión, recall, F1, AUC-ROC de ambos modelos
-- `feature_importance.png` — Importancia de variables (Random Forest)
-- `codo_kmeans.png`, `segmentos_scatter.png` — Gráficos de segmentación
-- `segmentos.csv` — Dataset original con columna `segmento` asignada
-- `informe_reproducibilidad.txt` — Resumen con parámetros y resultados
-
-**Random state fijo:** `42` en train/test split, modelos y K-Means (`n_init=10`).
-
-**Carga con fallback:** intenta la API primero; si no hay backend, busca un CSV local; si no hay CSV, genera un dataset simulado de 200 filas con `numpy.random.default_rng(42)`.
 
 ## Dataset simulado para APF3
 

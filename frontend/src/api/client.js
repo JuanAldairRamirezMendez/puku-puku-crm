@@ -96,4 +96,6 @@ export const api = {
     }
     return res.blob();
   },
+  entrenarMl: () => request('/reportes/entrenar', { method: 'POST' }),
+  entrenarStatus: () => request('/reportes/entrenar/status'),
 };

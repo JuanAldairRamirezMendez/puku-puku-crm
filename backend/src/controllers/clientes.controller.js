@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const { calcularChurnLabel, calcularChurnScore } = require('../utils/churn');
+const { predictProbability } = require('../utils/churn-predictor');
 
 /**
  * GET /api/clientes/buscar?q=texto
@@ -143,6 +144,8 @@ async function obtenerDetalle(req, res, next) {
     const churnLabel = calcularChurnLabel(fechaUltima, DIAS);
     const churnScore = calcularChurnScore(cliente.interacciones, DIAS);
 
+    const mlPrediction = predictProbability(cliente, cliente.interacciones);
+
     return res.json({
       ...cliente,
       metricas: {
@@ -150,6 +153,10 @@ async function obtenerDetalle(req, res, next) {
         ticketPromedioSoles,
         churnLabel,
         churnScore,
+        mlScore: mlPrediction?.probabilidad ?? null,
+        mlNivel: mlPrediction?.nivel ?? null,
+        mlPctChurn: mlPrediction?.pctChurn ?? null,
+        mlTopFactores: mlPrediction?.topFactores ?? [],
       },
     });
   } catch (err) {
@@ -175,11 +182,17 @@ async function obtenerChurnScore(req, res, next) {
     const score = calcularChurnScore(cliente.interacciones, DIAS);
     const label = calcularChurnLabel(cliente.interacciones[0]?.fecha, DIAS);
 
+    const mlPrediction = predictProbability(cliente, cliente.interacciones);
+
     return res.json({
       clienteId: id,
       churnScore: score,
       churnLabel: label,
       totalInteracciones: cliente.interacciones.length,
+      mlScore: mlPrediction?.probabilidad ?? null,
+      mlNivel: mlPrediction?.nivel ?? null,
+      mlPctChurn: mlPrediction?.pctChurn ?? null,
+      mlTopFactores: mlPrediction?.topFactores ?? [],
     });
   } catch (err) {
     next(err);
