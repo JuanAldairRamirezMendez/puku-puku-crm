@@ -20,6 +20,8 @@ import sys
 import warnings
 from pathlib import Path
 
+import joblib
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -48,6 +50,9 @@ np.random.seed(RANDOM_STATE)
 OUTPUT_DIR = Path(__file__).parent / "output"
 OUTPUT_DIR.mkdir(exist_ok=True)
 
+MODEL_DIR = Path(__file__).parent / "model"
+MODEL_DIR.mkdir(exist_ok=True)
+
 API_URL = "http://localhost:4000/api/reportes/export-apf3.csv"
 CREDENTIALS = {"email": "admin@pukupuku.pe", "password": "puku2026"}
 AUTH_URL = "http://localhost:4000/api/auth/login"
@@ -71,13 +76,8 @@ def cargar_dataset(ruta_csv=None):
             resp.raise_for_status()
             df = pd.read_csv(io.StringIO(resp.text))
         except requests.exceptions.ConnectionError:
-            print("  ⚠ API no disponible. Intentando dataset_apf3_puku_puku.csv local...")
-            local = Path("dataset_apf3_puku_puku.csv")
-            if local.exists():
-                df = pd.read_csv(local)
-            else:
-                print("  ERROR: No hay conexión API ni archivo local. Generando dataset simulado.")
-                df = _generar_dataset_simulado()
+            print("  [WARN] API no disponible. Usando dataset simulado.")
+            df = _generar_dataset_simulado()
     print(f"  Filas: {df.shape[0]}, Columnas: {df.shape[1]}")
     print(f"  Columnas: {list(df.columns)}")
     return df
@@ -214,8 +214,11 @@ def preprocesar(df):
     le_producto = LabelEncoder()
     df["producto_favorito_enc"] = le_producto.fit_transform(df["producto_favorito"].fillna("N/A"))
 
+    # Feature derivada: gasto_total_mensual_estimado
+    df["gasto_total_mensual_estimado"] = df["frecuencia_visita"] * df["ticket_promedio_soles"]
+
     # Features numéricas + codificadas
-    feature_cols = ["frecuencia_visita", "ticket_promedio_soles", "canal_origen_enc", "producto_favorito_enc"]
+    feature_cols = ["frecuencia_visita", "ticket_promedio_soles", "gasto_total_mensual_estimado", "canal_origen_enc", "producto_favorito_enc"]
     X = df[feature_cols].values
     y = df["churn_label"].values
 
@@ -303,7 +306,7 @@ def modelar(X_train, X_test, y_train, y_test, feature_cols):
     }).sort_values("importancia", ascending=False)
 
     print(f"\n  --- Importancia de features (Random Forest) ---")
-    print(importancia.to_string(index=False))
+    print(importancias.to_string(index=False))
 
     plt.figure(figsize=(7, 4))
     sns.barplot(data=importancias, x="importancia", y="feature", palette="BrBG")
@@ -313,7 +316,7 @@ def modelar(X_train, X_test, y_train, y_test, feature_cols):
     print(f"  Guardado: {OUTPUT_DIR / 'feature_importance.png'}")
     plt.close()
 
-    return df_result
+    return df_result, modelos
 
 
 # =============================================================================
@@ -350,6 +353,7 @@ def segmentar(df, feature_cols):
     # Aplicar k=3
     k = 3
     km = KMeans(n_clusters=k, random_state=RANDOM_STATE, n_init=10)
+    km.fit(X_seg_sc)
     df["segmento"] = km.labels_
 
     print(f"\n  K={k} — Perfiles de segmentos:")
@@ -434,11 +438,49 @@ def informe(df, df_result):
 
 
 # =============================================================================
+# 7. EXPORTAR MODELO A PRODUCCIÓN
+# =============================================================================
+def exportar_modelo(modelos, scaler, le_canal, le_producto, feature_cols, df_result):
+    print("\n" + "=" * 60)
+    print("7. EXPORTAR MODELO A PRODUCCIÓN")
+    print("=" * 60)
+
+    modelo_rec = modelos["Regresión Logística"]
+    rf = modelos["Random Forest"]
+
+    artifacts = {
+        "logistic_regression": modelo_rec,
+        "random_forest": rf,
+        "scaler": scaler,
+        "label_encoder_canal": le_canal,
+        "label_encoder_producto": le_producto,
+        "feature_cols": feature_cols,
+        "random_state": RANDOM_STATE,
+        "metrics": df_result.to_dict(),
+    }
+
+    path = MODEL_DIR / "modelo_churn.pkl"
+    joblib.dump(artifacts, path)
+    print(f"  Modelo exportado: {path} ({path.stat().st_size / 1024:.1f} KB)")
+
+    # Guardar encoders como JSON para Node.js
+    import json
+    encoders = {
+        "canal_origen": {str(i): c for i, c in enumerate(le_canal.classes_)},
+        "producto_favorito": {str(i): c for i, c in enumerate(le_producto.classes_)},
+    }
+    with open(MODEL_DIR / "encoders.json", "w", encoding="utf-8") as f:
+        json.dump(encoders, f, ensure_ascii=False, indent=2)
+    print(f"  Encoders exportados: {MODEL_DIR / 'encoders.json'}")
+
+
+# =============================================================================
 # MAIN
 # =============================================================================
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Pipeline APF3 — Churn y Segmentación")
     parser.add_argument("--csv", help="Ruta a archivo CSV local (opcional)")
+    parser.add_argument("--export", action="store_true", help="Exportar modelo entrenado a producción")
     args = parser.parse_args()
 
     print("=" * 60)
@@ -449,8 +491,12 @@ if __name__ == "__main__":
     df = cargar_dataset(args.csv)
     eda(df)
     df, X_train, X_test, y_train, y_test, scaler, le_canal, le_producto, feature_cols = preprocesar(df)
-    df_result = modelar(X_train, X_test, y_train, y_test, feature_cols)
+    df_result, modelos = modelar(X_train, X_test, y_train, y_test, feature_cols)
     segmentar(df, feature_cols[:2])  # frecuencia + ticket para scatter 2D
+
+    if args.export:
+        exportar_modelo(modelos, scaler, le_canal, le_producto, feature_cols, df_result)
+
     informe(df, df_result)
 
     print("\n✓ Pipeline completado. Outputs en:", OUTPUT_DIR)

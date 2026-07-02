@@ -2,6 +2,7 @@ const prisma = require('../config/db');
 const { calcularChurnLabel, calcularChurnScore } = require('../utils/churn');
 const { arrayToCsv } = require('../utils/exportCsv');
 const { kmeans } = require('../utils/kmeans');
+const { predecirChurn: mlPredecir, predecirBatch, entrenarModelo, modeloExiste } = require('../utils/predecirChurnPython');
 
 const DIAS_INACTIVIDAD = () => Number(process.env.CHURN_INACTIVITY_DAYS || 30);
 
@@ -37,6 +38,7 @@ async function construirDataset() {
       nombre: cliente.nombreCompleto,
       frecuencia_visita: frecuenciaVisita,
       ticket_promedio_soles: ticketPromedioSoles,
+      gasto_total_mensual_estimado: Number((frecuenciaVisita * ticketPromedioSoles).toFixed(2)),
       canal_origen: cliente.canalOrigen,
       producto_favorito: cliente.productoFavorito || 'N/A',
       churn_label: churnLabel,
@@ -89,6 +91,7 @@ async function exportarCsv(req, res, next) {
       'nombre',
       'frecuencia_visita',
       'ticket_promedio_soles',
+      'gasto_total_mensual_estimado',
       'canal_origen',
       'producto_favorito',
       'churn_label',
@@ -334,4 +337,110 @@ async function analytics(req, res, next) {
   }
 }
 
-module.exports = { clientesFrecuentes, dataset, exportarCsv, analytics, segmentacion };
+/**
+ * POST /api/reportes/predecir-churn
+ * ML: Predice churn usando el modelo entrenado (Regresión Logística).
+ * Body: { clientes: [{ frecuencia_visita, ticket_promedio_soles, canal_origen, producto_favorito }] }
+ *       o un solo objeto con los mismos campos.
+ */
+async function predecirChurn(req, res, next) {
+  try {
+    if (!modeloExiste()) {
+      return res.status(400).json({
+        error: 'Modelo no entrenado. Ejecuta POST /api/reportes/entrenar-modelo primero.',
+      });
+    }
+
+    const input = req.body.clientes || req.body;
+
+    if (Array.isArray(input)) {
+      if (input.length === 0) {
+        return res.status(400).json({ error: 'Lista de clientes vacia.' });
+      }
+      const resultados = await predecirBatch(input);
+      return res.json({ total: resultados.length, predicciones: resultados });
+    }
+
+    const resultado = await mlPredecir(input);
+    return res.json(resultado);
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * GET /api/reportes/predecir-churn/:id
+ * ML: Predice churn para un cliente específico del CRM.
+ */
+async function predecirChurnCliente(req, res, next) {
+  try {
+    if (!modeloExiste()) {
+      return res.status(400).json({
+        error: 'Modelo no entrenado. Ejecuta POST /api/reportes/entrenar-modelo primero.',
+      });
+    }
+
+    const { id } = req.params;
+    const cliente = await prisma.cliente.findUnique({
+      where: { id },
+      include: { interacciones: { orderBy: { fecha: 'desc' } } },
+    });
+
+    if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });
+
+    const conMonto = cliente.interacciones.filter((i) => i.montoSoles !== null);
+    const frecuenciaVisita = cliente.interacciones.length;
+    const ticketPromedioSoles = conMonto.length > 0
+      ? Number((conMonto.reduce((acc, i) => acc + Number(i.montoSoles), 0) / conMonto.length).toFixed(2))
+      : 0;
+
+    const input = {
+      frecuencia_visita: frecuenciaVisita,
+      ticket_promedio_soles: ticketPromedioSoles,
+      canal_origen: cliente.canalOrigen,
+      producto_favorito: cliente.productoFavorito || 'N/A',
+    };
+
+    const prediccion = await mlPredecir(input);
+    return res.json({
+      clienteId: id,
+      nombre: cliente.nombreCompleto,
+      ...prediccion,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+/**
+ * POST /api/reportes/entrenar-modelo
+ * ML: Reentrena el modelo con los datos actuales del CRM.
+ */
+async function reentrenarModelo(req, res, next) {
+  try {
+    const data = await construirDataset();
+    const fs = require('fs');
+    const path = require('path');
+    const csvPath = path.resolve(__dirname, '../../apf3/dataset_crm_actual.csv');
+    const columnas = ['nombre', 'frecuencia_visita', 'ticket_promedio_soles', 'gasto_total_mensual_estimado', 'canal_origen', 'producto_favorito', 'churn_label', 'churn_score'];
+    const csv = [columnas.join(',')];
+    for (const r of data) {
+      csv.push(columnas.map((c) => {
+        const v = r[c];
+        return typeof v === 'string' && (v.includes(',') || v.includes('"')) ? `"${v}"` : v;
+      }).join(','));
+    }
+    fs.writeFileSync(csvPath, csv.join('\n'), 'utf-8');
+
+    const result = await entrenarModelo();
+    return res.json({
+      mensaje: 'Modelo reentrenado exitosamente.',
+      clientes: data.length,
+      log: result.stdout.split('\n').filter((l) => l.startsWith('  ►') || l.includes('Accuracy') || l.includes('Guardado')).slice(0, 20),
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { clientesFrecuentes, dataset, exportarCsv, analytics, segmentacion, predecirChurn, predecirChurnCliente, reentrenarModelo };

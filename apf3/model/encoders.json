@@ -1,0 +1,18 @@
+{
+  "canal_origen": {
+    "0": "INSTAGRAM",
+    "1": "PEDIDOSYA",
+    "2": "PRESENCIAL",
+    "3": "RAPPI",
+    "4": "WHATSAPP"
+  },
+  "producto_favorito": {
+    "0": "Americano",
+    "1": "Cappuccino clásico",
+    "2": "Chai latte",
+    "3": "Flat white sin azúcar",
+    "4": "Latte caramel",
+    "5": "Matcha latte",
+    "6": "Mocha"
+  }
+}

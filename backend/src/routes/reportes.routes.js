@@ -5,6 +5,9 @@ const {
   exportarCsv,
   analytics,
   segmentacion,
+  predecirChurn,
+  predecirChurnCliente,
+  reentrenarModelo,
 } = require('../controllers/reportes.controller');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
@@ -18,5 +21,8 @@ router.get('/dataset', dataset);                        // US06/US07 (JSON)
 router.get('/export-apf3.csv', exportarCsv);             // Insumo directo para APF3
 router.get('/analytics', analytics);                     // Dashboard visual APF3
 router.post('/segmentacion', segmentacion);              // K-Means clustering APF3
+router.post('/predecir-churn', predecirChurn);           // ML: predecir churn (batch body)
+router.get('/predecir-churn/:id', predecirChurnCliente); // ML: predecir churn por cliente
+router.post('/entrenar-modelo', reentrenarModelo);       // ML: reentrenar desde datos CRM
 
 module.exports = router;

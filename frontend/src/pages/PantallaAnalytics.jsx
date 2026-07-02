@@ -254,6 +254,7 @@ export default function PantallaAnalytics() {
         )}
       </div>
 
+      <ModeloML />
       <Segmentacion />
     </div>
   );
@@ -293,6 +294,63 @@ function Heatmap({ data }) {
           })}
         </div>
       ))}
+    </div>
+  );
+}
+
+function ModeloML() {
+  const [entrenando, setEntrenando] = useState(false);
+  const [resultado, setResultado] = useState(null);
+  const [error, setError] = useState('');
+
+  async function handleEntrenar() {
+    setEntrenando(true);
+    setError('');
+    setResultado(null);
+    try {
+      const res = await api.entrenarModelo();
+      setResultado(res);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setEntrenando(false);
+    }
+  }
+
+  return (
+    <div style={{ marginTop: 24 }}>
+      <div className="card">
+        <div className="segmentacion-header">
+          <h3>Modelo ML — Predicción de Churn</h3>
+          <div className="segmentacion-controls">
+            <button className="btn-principal" onClick={handleEntrenar} disabled={entrenando}>
+              {entrenando ? 'Entrenando...' : 'Entrenar modelo con datos del CRM'}
+            </button>
+          </div>
+        </div>
+
+        {error && <div className="error-msg">{error}</div>}
+
+        {resultado && (
+          <>
+            <p style={{ fontSize: '0.82rem', color: 'var(--color-brown-700)', margin: '10px 0 16px' }}>
+              Modelo entrenado con {resultado.clientes} clientes · {resultado.mensaje}
+            </p>
+            {resultado.log && resultado.log.length > 0 && (
+              <pre style={{ fontSize: '0.75rem', background: '#f5ede4', padding: 12, borderRadius: 6, maxHeight: 200, overflow: 'auto' }}>
+                {resultado.log.join('\n')}
+              </pre>
+            )}
+          </>
+        )}
+
+        {!resultado && !error && !entrenando && (
+          <p className="sin-datos" style={{ marginTop: 12 }}>
+            Entrena el modelo de Regresión Logística con los datos actuales del CRM para predecir riesgo de abandono.
+            Una vez entrenado, aparecerá en la ficha de cada cliente.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -83,6 +83,9 @@ export const api = {
     return request(`/reportes/analytics${q ? '?' + q : ''}`);
   },
   segmentacion: (k = 3) => request('/reportes/segmentacion', { method: 'POST', body: { k } }),
+  predecirChurn: (data) => request('/reportes/predecir-churn', { method: 'POST', body: data }),
+  predecirChurnCliente: (id) => request(`/reportes/predecir-churn/${id}`),
+  entrenarModelo: () => request('/reportes/entrenar-modelo', { method: 'POST' }),
   exportarCsv: async () => {
     const res = await fetch(`${BASE_URL}/reportes/export-apf3.csv`, {
       headers: authHeaders(),

@@ -29,13 +29,28 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
   const [canalNuevaAtencion, setCanalNuevaAtencion] = useState('');
   const [interaccionEnCurso, setInteraccionEnCurso] = useState(null);
   const [paginaFeed, setPaginaFeed] = useState(1);
+  const [mlPrediccion, setMlPrediccion] = useState(null);
+  const [mlCargando, setMlCargando] = useState(false);
 
   async function cargarCliente() {
     try {
       const data = await api.obtenerCliente(clienteId);
       setCliente(data);
       setPaginaFeed(1);
+      cargarMlPrediccion(clienteId);
     } catch (err) { setError(err.message); }
+  }
+
+  async function cargarMlPrediccion(id) {
+    setMlCargando(true);
+    try {
+      const data = await api.predecirChurnCliente(id);
+      setMlPrediccion(data);
+    } catch {
+      setMlPrediccion(null);
+    } finally {
+      setMlCargando(false);
+    }
   }
 
   useEffect(() => { cargarCliente(); }, [clienteId]);
@@ -218,7 +233,37 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             <div className="p2-sb-chip">{cliente.productoFavorito}</div>
           )}
 
-          {/* Riesgo de fuga */}
+          {/* Prediccion ML del modelo APF3 */}
+          <div className="p2-sb-seccion">
+            <div className="p2-sb-sec-titulo">Predicción ML (APF3)</div>
+            {mlCargando ? (
+              <p style={{ fontSize: '0.78rem', color: 'var(--color-brown-700)' }}>Cargando predicción ML...</p>
+            ) : mlPrediccion && !mlPrediccion.error ? (
+              <div>
+                <div className="p2-churn-header">
+                  <span className={`p2-churn-pct nivel-${mlPrediccion.probabilidad_churn < 0.33 ? 'bajo' : mlPrediccion.probabilidad_churn < 0.66 ? 'medio' : 'alto'}`}>
+                    {(mlPrediccion.probabilidad_churn * 100).toFixed(0)}%
+                  </span>
+                  <div className="p2-churn-bar-track">
+                    <div className={`p2-churn-bar-fill nivel-${mlPrediccion.probabilidad_churn < 0.33 ? 'bajo' : mlPrediccion.probabilidad_churn < 0.66 ? 'medio' : 'alto'}`}
+                      style={{ width: `${(mlPrediccion.probabilidad_churn * 100).toFixed(0)}%` }} />
+                  </div>
+                </div>
+                <p className="p2-churn-contexto">
+                  {mlPrediccion.churn_etiqueta === 'RIESGO_ABANDONO'
+                    ? 'Riesgo de abandono (ML)'
+                    : 'Cliente activo (ML)'}
+                  {' · Modelo: Regresión Logística'}
+                </p>
+              </div>
+            ) : (
+              <p style={{ fontSize: '0.78rem', color: 'var(--color-brown-700)' }}>
+                Modelo ML no disponible. Entrena el modelo en Analytics.
+              </p>
+            )}
+          </div>
+
+          {/* Riesgo de fuga (rule-based) */}
           {churnAnalysis && (
             <div className="p2-sb-seccion">
               <div className="p2-sb-sec-titulo">Riesgo de fuga</div>
