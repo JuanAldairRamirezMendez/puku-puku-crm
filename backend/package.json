@@ -23,7 +23,7 @@
     "seed": "node prisma/seed.js",
     "seed:apf3": "node prisma/seed-apf3.js",
     "test": "jest --forceExit --detectOpenHandles",
-    "postinstall": "sh setup_python.sh",
+    "postinstall": "sh setup_python.sh"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
