@@ -201,7 +201,7 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     const puntajeAnterior = churnLabel === 0 ? Math.max(0, score - 0.09) : Math.min(1, score + 0.05);
 
     return {
-      score: displayScore, nivel: displayNivel, churnLabel, diffDias, n, avgTicket,
+      score: displayScore, nivel: displayNivel, churnLabel, diffDias, n,
       factores: factores.slice(0, 5),
       semanas,
       accion,
