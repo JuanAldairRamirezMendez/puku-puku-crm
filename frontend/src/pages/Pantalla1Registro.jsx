@@ -44,9 +44,14 @@ function guardarReciente(cliente) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(recientes));
 }
 
+const SEARCH_QUERY_KEY = 'puku_search_query';
+const SEARCH_RESULTS_KEY = 'puku_search_results';
+
 export default function Pantalla1Registro({ onSeleccionarCliente }) {
-  const [query, setQuery] = useState('');
-  const [resultados, setResultados] = useState([]);
+  const [query, setQuery] = useState(() => sessionStorage.getItem(SEARCH_QUERY_KEY) || '');
+  const [resultados, setResultados] = useState(() => {
+    try { return JSON.parse(sessionStorage.getItem(SEARCH_RESULTS_KEY) || '[]'); } catch { return []; }
+  });
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [error, setError] = useState('');
   const [analyticsData, setAnalyticsData] = useState(null);
@@ -64,6 +69,11 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
 
   const telefonoEval = evaluarTelefono(form.telefono);
   const telefonoTocado = form.telefono.length > 0;
+
+  useEffect(() => {
+    sessionStorage.setItem(SEARCH_QUERY_KEY, query);
+    sessionStorage.setItem(SEARCH_RESULTS_KEY, JSON.stringify(resultados));
+  }, [query, resultados]);
 
   useEffect(() => {
     api.analytics().then(setAnalyticsData).catch(() => {});

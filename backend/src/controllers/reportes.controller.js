@@ -423,14 +423,8 @@ async function reentrenarModelo(req, res, next) {
     const path = require('path');
     const csvPath = path.resolve(__dirname, '../../../apf3/dataset_crm_actual.csv');
     const columnas = ['nombre', 'frecuencia_visita', 'ticket_promedio_soles', 'gasto_total_mensual_estimado', 'canal_origen', 'producto_favorito', 'churn_label', 'churn_score'];
-    const csv = [columnas.join(',')];
-    for (const r of data) {
-      csv.push(columnas.map((c) => {
-        const v = r[c];
-        return typeof v === 'string' && (v.includes(',') || v.includes('"')) ? `"${v}"` : v;
-      }).join(','));
-    }
-    fs.writeFileSync(csvPath, csv.join('\n'), 'utf-8');
+    const csv = arrayToCsv(data, columnas);
+    fs.writeFileSync(csvPath, csv, 'utf-8');
 
     const result = await entrenarModelo();
     return res.json({

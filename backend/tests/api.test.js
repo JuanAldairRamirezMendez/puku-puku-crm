@@ -248,7 +248,7 @@ describe('GET /api/reportes/export-apf3.csv', () => {
     mockPrisma.cliente.findMany.mockResolvedValue(CLIENTES);
   });
 
-  it('devuelve CSV con las 6 columnas exactas del header', async () => {
+  it('devuelve CSV con las 8 columnas exactas del header', async () => {
     const res = await request(app)
       .get('/api/reportes/export-apf3.csv')
       .set('Authorization', `Bearer token-falso`);
@@ -260,7 +260,7 @@ describe('GET /api/reportes/export-apf3.csv', () => {
     const header = lines[0];
 
     expect(header).toBe(
-      'nombre,frecuencia_visita,ticket_promedio_soles,canal_origen,producto_favorito,churn_label,churn_score'
+      'nombre,frecuencia_visita,ticket_promedio_soles,gasto_total_mensual_estimado,canal_origen,producto_favorito,churn_label,churn_score'
     );
   });
 
@@ -276,8 +276,8 @@ describe('GET /api/reportes/export-apf3.csv', () => {
     const row1 = lines[1].split(',');
     expect(row1[0]).toBe('Ana Torres');
     expect(row1[1]).toBe('2'); // frecuencia_visita
-    expect(row1[3]).toBe('WHATSAPP');
-    expect(row1[4]).toBe('Flat White');
+    expect(row1[4]).toBe('WHATSAPP');
+    expect(row1[5]).toBe('Flat White');
   });
 
   it('marca churn_label=0 para cliente con interaccion reciente', async () => {
@@ -286,7 +286,7 @@ describe('GET /api/reportes/export-apf3.csv', () => {
       .set('Authorization', `Bearer token-falso`);
 
     const row1 = res.text.trim().split('\n')[1].split(',');
-    expect(row1[5]).toBe('0');
+    expect(row1[6]).toBe('0');
   });
 
   it('marca churn_label=1 para cliente sin interacciones', async () => {
@@ -295,7 +295,7 @@ describe('GET /api/reportes/export-apf3.csv', () => {
       .set('Authorization', `Bearer token-falso`);
 
     const row2 = res.text.trim().split('\n')[2].split(',');
-    expect(row2[5]).toBe('1');
+    expect(row2[6]).toBe('1');
   });
 
   it('muestra N/A para producto_favorito cuando es null', async () => {
@@ -304,6 +304,6 @@ describe('GET /api/reportes/export-apf3.csv', () => {
       .set('Authorization', `Bearer token-falso`);
 
     const row2 = res.text.trim().split('\n')[2].split(',');
-    expect(row2[4]).toBe('N/A');
+    expect(row2[5]).toBe('N/A');
   });
 });
