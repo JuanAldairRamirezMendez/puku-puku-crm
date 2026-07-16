@@ -2,18 +2,37 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/db');
 
+const COOKIE_OPTS = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  path: '/api',
+};
+
+function firmarToken(usuario) {
+  return jwt.sign(
+    { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol },
+    process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
+  );
+}
+
+function firmarRefresh(usuario) {
+  return jwt.sign(
+    { id: usuario.id, type: 'refresh' },
+    process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET,
+    { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
+  );
+}
+
 /**
  * POST /api/auth/login
  * Body: { email, password }
- * Login del personal de Puku Puku. Emite un JWT que el frontend
- * guarda en memoria (NUNCA en localStorage para evitar XSS en producción).
+ * Setea httpOnly cookies (token + refreshToken).
  */
 async function login(req, res, next) {
   try {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: 'email y password son requeridos.' });
-    }
 
     const usuario = await prisma.usuario.findUnique({ where: { email } });
     if (!usuario || !usuario.activo) {
@@ -25,32 +44,71 @@ async function login(req, res, next) {
       return res.status(401).json({ error: 'Credenciales inválidas.' });
     }
 
-    const token = jwt.sign(
-      { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '8h' }
-    );
+    const payload = { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol };
+    const token = firmarToken(payload);
+    const refreshToken = firmarRefresh(payload);
 
-    return res.json({
-      token,
-      usuario: { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol },
-    });
+    res.cookie('token', token, { ...COOKIE_OPTS, maxAge: 8 * 60 * 60 * 1000 });
+    res.cookie('refreshToken', refreshToken, { ...COOKIE_OPTS, maxAge: 7 * 24 * 60 * 60 * 1000, path: '/api/auth' });
+
+    return res.json({ usuario: payload });
   } catch (err) {
     next(err);
   }
 }
 
 /**
+ * POST /api/auth/refresh
+ * Refresca el access token usando el refreshToken httpOnly cookie.
+ */
+async function refresh(req, res, next) {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ error: 'Refresh token no disponible.' });
+    }
+
+    const secret = process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET;
+    const payload = jwt.verify(refreshToken, secret);
+    if (payload.type !== 'refresh') {
+      return res.status(401).json({ error: 'Refresh token inválido.' });
+    }
+
+    const usuario = await prisma.usuario.findUnique({ where: { id: payload.id } });
+    if (!usuario || !usuario.activo) {
+      return res.status(401).json({ error: 'Usuario no encontrado o inactivo.' });
+    }
+
+    const tokenPayload = { id: usuario.id, nombre: usuario.nombre, rol: usuario.rol };
+    const newToken = firmarToken(tokenPayload);
+
+    res.cookie('token', newToken, { ...COOKIE_OPTS, maxAge: 8 * 60 * 60 * 1000 });
+
+    return res.json({ usuario: tokenPayload });
+  } catch (err) {
+    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Refresh token inválido o expirado.' });
+    }
+    next(err);
+  }
+}
+
+/**
+ * POST /api/auth/logout
+ * Limpia las cookies.
+ */
+async function logout(req, res) {
+  res.clearCookie('token', { ...COOKIE_OPTS, path: '/api' });
+  res.clearCookie('refreshToken', { ...COOKIE_OPTS, path: '/api/auth' });
+  return res.json({ ok: true });
+}
+
+/**
  * POST /api/auth/registrar  (solo ADMINISTRADOR)
- * Crea una cuenta de colaborador. La 2FA real (TOTP) se deja como
- * extensión futura — el campo twoFactorEnabled ya existe en el modelo.
  */
 async function registrar(req, res, next) {
   try {
     const { nombre, email, password, rol } = req.body;
-    if (!nombre || !email || !password) {
-      return res.status(400).json({ error: 'nombre, email y password son requeridos.' });
-    }
 
     const passwordHash = await bcrypt.hash(password, 10);
     const usuario = await prisma.usuario.create({
@@ -70,7 +128,6 @@ async function registrar(req, res, next) {
 
 /**
  * GET /api/auth/me
- * Devuelve los datos del usuario autenticado (para verificar sesión al recargar).
  */
 async function me(req, res) {
   return res.json({
@@ -78,4 +135,4 @@ async function me(req, res) {
   });
 }
 
-module.exports = { login, registrar, me };
+module.exports = { login, registrar, me, refresh, logout };

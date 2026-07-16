@@ -15,21 +15,23 @@ const {
 } = require('../controllers/ml.controller');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
+const { validate } = require('../middleware/validate');
+const { segmentacionSchema, predecirChurnSchema } = require('../schemas/reporte.schema');
 
 const router = express.Router();
 
 router.use(requireAuth);
-router.get('/export-apf3.csv', exportarCsv);             // Insumo directo para APF3 (cualquier rol)
+router.get('/export-apf3.csv', exportarCsv);
 router.use(requireRole('ADMINISTRADOR', 'GERENTE'));
 
-router.get('/clientes-frecuentes', clientesFrecuentes); // US04
-router.get('/dataset', dataset);                        // US06/US07 (JSON)
-router.get('/analytics', analytics);                     // Dashboard visual APF3
-router.post('/segmentacion', segmentacion);              // K-Means clustering APF3
-router.post('/predecir-churn', predecirChurn);           // ML: predecir churn (batch body)
-router.get('/predecir-churn/:id', predecirChurnCliente); // ML: predecir churn por cliente
-router.post('/entrenar-modelo', reentrenarModelo);       // ML: reentrenar desde datos CRM
-router.post('/entrenar', entrenar);                      // ML Churn training (synthetic)
-router.get('/entrenar/status', status);                  // Training status & results
+router.get('/clientes-frecuentes', clientesFrecuentes);
+router.get('/dataset', dataset);
+router.get('/analytics', analytics);
+router.post('/segmentacion', validate(segmentacionSchema), segmentacion);
+router.post('/predecir-churn', validate(predecirChurnSchema), predecirChurn);
+router.get('/predecir-churn/:id', predecirChurnCliente);
+router.post('/entrenar-modelo', reentrenarModelo);
+router.post('/entrenar', entrenar);
+router.get('/entrenar/status', status);
 
 module.exports = router;

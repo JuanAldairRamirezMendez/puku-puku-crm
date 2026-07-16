@@ -7,16 +7,18 @@ const {
   obtenerChurnScore,
 } = require('../controllers/clientes.controller');
 const { requireAuth } = require('../middleware/auth');
+const { validate } = require('../middleware/validate');
+const { crearClienteSchema, actualizarClienteSchema } = require('../schemas/cliente.schema');
+const { audit } = require('../middleware/audit');
 
 const router = express.Router();
 
-// Todas las rutas de este módulo requieren sesión de colaborador
 router.use(requireAuth);
 
-router.get('/buscar', buscar);          // Pantalla 1: barra de búsqueda
-router.post('/', crear);                // Pantalla 1: formulario de registro
-router.get('/:id', obtenerDetalle);     // Pantalla 2: tarjeta + historial
-router.get('/:id/churn-score', obtenerChurnScore); // Score continuo APF3
-router.patch('/:id', actualizar);       // Edición de preferencias/alergias
+router.get('/buscar', buscar);
+router.post('/', validate(crearClienteSchema), audit('CLIENTE.CREAR'), crear);
+router.get('/:id', obtenerDetalle);
+router.get('/:id/churn-score', obtenerChurnScore);
+router.patch('/:id', validate(actualizarClienteSchema), audit('CLIENTE.ACTUALIZAR'), actualizar);
 
 module.exports = router;

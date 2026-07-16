@@ -1,19 +1,22 @@
 import { useState } from 'react';
-import { api } from '../api/client';
+import { useNavigate } from 'react-router-dom';
+import { useStore } from '../store/index';
 
-export default function LoginForm({ onLogin }) {
+export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const login = useStore((s) => s.login);
+  const navigate = useNavigate();
 
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
     setCargando(true);
     try {
-      const data = await api.login(email, password);
-      onLogin(data.usuario);
+      await login(email, password);
+      navigate('/buscar', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {

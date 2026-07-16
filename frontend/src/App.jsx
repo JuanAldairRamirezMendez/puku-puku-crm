@@ -5,7 +5,7 @@ import Pantalla1Registro from './pages/Pantalla1Registro.jsx';
 import Pantalla2Historial from './pages/Pantalla2Historial.jsx';
 import PantallaFrecuentes from './pages/PantallaFrecuentes.jsx';
 import PantallaAnalytics from './pages/PantallaAnalytics.jsx';
-import { api, clearSession, getUsuarioGuardado } from './api/client';
+import { api } from './api/client';
 
 export default function App() {
   const [usuario, setUsuario] = useState(null);
@@ -14,23 +14,18 @@ export default function App() {
   const [verificando, setVerificando] = useState(true);
 
   useEffect(() => {
-    const guardado = getUsuarioGuardado();
-    if (guardado) {
-      api.verificarSesion()
-        .then((data) => setUsuario(data.usuario))
-        .catch(() => clearSession())
-        .finally(() => setVerificando(false));
-    } else {
-      setVerificando(false);
-    }
+    api.verificarSesion()
+      .then((data) => setUsuario(data.usuario))
+      .catch(() => setUsuario(null))
+      .finally(() => setVerificando(false));
   }, []);
 
   function handleLogin(datosUsuario) {
     setUsuario(datosUsuario);
   }
 
-  function handleSalir() {
-    clearSession();
+  async function handleSalir() {
+    await api.logout().catch(() => {});
     setUsuario(null);
     setVista('buscar');
     setClienteSeleccionado(null);

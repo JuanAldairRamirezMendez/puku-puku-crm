@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import Pantalla3PostAtencion from './Pantalla3PostAtencion.jsx';
+import { SkeletonSidebar, SkeletonCard } from '../components/Skeleton.jsx';
 
 const CANALES = ['PRESENCIAL', 'WHATSAPP', 'INSTAGRAM', 'RAPPI', 'PEDIDOSYA'];
 const ITEMS_POR_PAGINA = 10;
@@ -15,17 +17,12 @@ function diasDesde(fechaISO) {
   return Math.floor((Date.now() - new Date(fechaISO).getTime()) / (1000 * 60 * 60 * 24));
 }
 
-function semanaISO(fecha) {
-  const d = new Date(fecha);
-  const inicio = new Date(d);
-  inicio.setDate(d.getDate() - d.getDay());
-  inicio.setHours(0, 0, 0, 0);
-  return inicio.toISOString().slice(0, 10);
-}
-
-export default function Pantalla2Historial({ clienteId, onVolver }) {
+export default function Pantalla2Historial() {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [cliente, setCliente] = useState(null);
   const [error, setError] = useState('');
+  const [cargando, setCargando] = useState(true);
   const [canalNuevaAtencion, setCanalNuevaAtencion] = useState('');
   const [interaccionEnCurso, setInteraccionEnCurso] = useState(null);
   const [paginaFeed, setPaginaFeed] = useState(1);
@@ -33,18 +30,21 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
   const [mlCargando, setMlCargando] = useState(false);
 
   async function cargarCliente() {
+    if (!id) return;
+    setCargando(true);
     try {
-      const data = await api.obtenerCliente(clienteId);
+      const data = await api.obtenerCliente(id);
       setCliente(data);
       setPaginaFeed(1);
-      cargarMlPrediccion(clienteId);
+      cargarMlPrediccion(id);
     } catch (err) { setError(err.message); }
+    finally { setCargando(false); }
   }
 
-  async function cargarMlPrediccion(id) {
+  async function cargarMlPrediccion(clienteId) {
     setMlCargando(true);
     try {
-      const data = await api.predecirChurnCliente(id);
+      const data = await api.predecirChurnCliente(clienteId);
       setMlPrediccion(data);
     } catch {
       setMlPrediccion(null);
@@ -53,12 +53,12 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     }
   }
 
-  useEffect(() => { cargarCliente(); }, [clienteId]);
+  useEffect(() => { cargarCliente(); }, [id]);
 
   async function iniciarAtencion() {
-    if (!canalNuevaAtencion) return;
+    if (!canalNuevaAtencion || !id) return;
     try {
-      const interaccion = await api.crearInteraccion(clienteId, { canal: canalNuevaAtencion });
+      const interaccion = await api.crearInteraccion(id, { canal: canalNuevaAtencion });
       setInteraccionEnCurso(interaccion);
     } catch (err) { setError(err.message); }
   }
@@ -69,7 +69,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     await cargarCliente();
   }
 
-  // Cálculos de churn y factores de riesgo
   const churnAnalysis = useMemo(() => {
     if (!cliente) return null;
     const ints = cliente.interacciones;
@@ -80,19 +79,15 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     const score = cliente.metricas?.churnScore ?? 0;
     const nivel = score < 0.33 ? 'bajo' : score < 0.66 ? 'medio' : 'alto';
 
-    // ML prediction
     const mlScore = cliente.metricas?.mlScore ?? null;
     const mlNivel = mlScore !== null ? (mlScore < 0.33 ? 'bajo' : mlScore < 0.66 ? 'medio' : 'alto') : null;
     const mlTopFactores = cliente.metricas?.mlTopFactores ?? [];
 
-    // Use ML score if available, else heuristic
     const displayScore = mlScore ?? score;
     const displayNivel = mlNivel ?? nivel;
 
-    // Factores
     const factores = [];
 
-    // ML-based factors (most important)
     if (mlTopFactores.length > 0) {
       for (const f of mlTopFactores.slice(0, 3)) {
         const nombresFactor = {
@@ -118,9 +113,7 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
       }
     }
 
-    // Restored heuristic factors (if no ML)
     if (mlTopFactores.length === 0) {
-      // Recencia
       if (ultima) {
         factores.push({
           icono: '🕐',
@@ -131,7 +124,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
         factores.push({ icono: '🕐', texto: 'Sin visitas registradas', severidad: 'alta' });
       }
 
-      // Frecuencia
       const freqRiesgo = Math.max(0, 1 - n / 20);
       factores.push({
         icono: '📊',
@@ -139,7 +131,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
         severidad: freqRiesgo > 0.5 ? 'alta' : freqRiesgo > 0.2 ? 'media' : 'baja',
       });
 
-      // Canal único
       const canales = new Set(ints.map((i) => i.canal));
       if (canales.size === 1 && n > 1) {
         factores.push({
@@ -149,7 +140,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
         });
       }
 
-      // Satisfacción
       const recientes90 = ints.filter((i) => diasDesde(i.fecha) <= 90);
       const insatisfechos = recientes90.filter((i) => i.satisfaccion === 'INSATISFECHO').length;
       if (insatisfechos > 0) {
@@ -161,7 +151,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
       }
     }
 
-    // Sparkline: visitas por semana (últimas 10 semanas)
     const semanas = [];
     const ahora = new Date();
     for (let w = 9; w >= 0; w--) {
@@ -177,7 +166,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
       semanas.push(count);
     }
 
-    // Acción sugerida (ML-informed)
     let accion = '';
     if (mlScore !== null && mlScore > 0.7) {
       const topFactor = mlTopFactores[0];
@@ -212,7 +200,18 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
   }, [cliente]);
 
   if (error) return <div className="error-msg">{error}</div>;
-  if (!cliente) return <p>Cargando…</p>;
+
+  if (cargando || !cliente) {
+    return (
+      <div>
+        <button className="btn-secundario" onClick={() => navigate('/buscar')} style={{ marginBottom: 16 }}>← Volver a búsqueda</button>
+        <div className="p2-layout">
+          <SkeletonSidebar />
+          <SkeletonCard lines={5} height="300px" />
+        </div>
+      </div>
+    );
+  }
 
   const iniciales = cliente.nombreCompleto.split(' ').map((p) => p[0]).slice(0, 2).join('');
   const totalInteracciones = cliente.interacciones.length;
@@ -226,7 +225,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
     ? churnAnalysis.semanas.map((v, i) => `${(i / 9) * svgW},${svgH - (v / maxSpark) * (svgH - 8) - 4}`).join(' ')
     : '';
 
-  // Determinar rango de días entre visitas
   const intsConsecutivas = cliente.interacciones;
   let intervaloPromedio = null;
   if (intsConsecutivas.length >= 2) {
@@ -239,7 +237,7 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
 
   return (
     <div>
-      <button className="btn-secundario" onClick={onVolver} style={{ marginBottom: 16 }}>← Volver a búsqueda</button>
+      <button className="btn-secundario" onClick={() => navigate('/buscar')} style={{ marginBottom: 16 }}>← Volver a búsqueda</button>
 
       {interaccionEnCurso && (
         <Pantalla3PostAtencion
@@ -251,9 +249,7 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
       )}
 
       <div className="p2-layout">
-        {/* SIDEBAR — Perfil + Análisis de Churn */}
         <aside className="p2-sidebar">
-          {/* Header — Avatar + datos */}
           <div className="p2-sb-header">
             <div className="p2-avatar">{iniciales}</div>
             <h2 className="p2-sb-nombre">{cliente.nombreCompleto}</h2>
@@ -261,12 +257,10 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             <span className="etiqueta-canal">{cliente.canalOrigen}</span>
           </div>
 
-          {/* Producto favorito */}
           {cliente.productoFavorito && (
             <div className="p2-sb-chip">{cliente.productoFavorito}</div>
           )}
 
-          {/* Prediccion ML del modelo APF3 */}
           <div className="p2-sb-seccion">
             <div className="p2-sb-sec-titulo">Predicción ML (APF3)</div>
             {mlCargando ? (
@@ -296,7 +290,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             )}
           </div>
 
-          {/* Riesgo de fuga (rule-based) */}
           {churnAnalysis && (
             <div className="p2-sb-seccion">
               <div className="p2-sb-sec-titulo">Riesgo de fuga</div>
@@ -317,7 +310,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             </div>
           )}
 
-          {/* Sparkline — Frecuencia de visitas (últimas 10 semanas) */}
           {churnAnalysis && (
             <div className="p2-sb-seccion">
               <div className="p2-sb-sec-titulo">Frecuencia de visitas — últimas 10 semanas</div>
@@ -335,7 +327,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             </div>
           )}
 
-          {/* Factores del riesgo */}
           {churnAnalysis && churnAnalysis.factores.length > 0 && (
             <div className="p2-sb-seccion">
               <div className="p2-sb-sec-titulo">Factores del riesgo</div>
@@ -350,7 +341,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             </div>
           )}
 
-          {/* KPIs — Visitas totales + Ticket promedio */}
           <div className="p2-sb-kpis">
             <div className="p2-sb-kpi">
               <span className="p2-sb-kpi-valor">{churnAnalysis?.n ?? totalInteracciones}</span>
@@ -362,7 +352,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             </div>
           </div>
 
-          {/* Adicional: intervalo entre visitas */}
           {intervaloPromedio !== null && (
             <p className="p2-sb-detalle">Intervalo promedio entre visitas: cada {intervaloPromedio} días</p>
           )}
@@ -372,7 +361,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
             </p>
           )}
 
-          {/* Acción sugerida */}
           {churnAnalysis && (
             <div className="p2-accion">
               <span className="p2-accion-icono">💡</span>
@@ -381,7 +369,6 @@ export default function Pantalla2Historial({ clienteId, onVolver }) {
           )}
         </aside>
 
-        {/* RIGHT — Historial */}
         <div className="p2-main">
           <div className="card">
             <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>

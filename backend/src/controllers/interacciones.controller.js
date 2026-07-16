@@ -9,11 +9,7 @@ async function crear(req, res, next) {
   try {
     const { id: clienteId } = req.params;
     const { canal, resumenPedido } = req.body;
-    const colaboradorId = req.usuario.id; // viene del JWT (requireAuth)
-
-    if (!canal) {
-      return res.status(400).json({ error: 'El canal de origen es obligatorio (US03).' });
-    }
+    const colaboradorId = req.usuario.id;
 
     const cliente = await prisma.cliente.findUnique({ where: { id: clienteId } });
     if (!cliente) return res.status(404).json({ error: 'Cliente no encontrado.' });

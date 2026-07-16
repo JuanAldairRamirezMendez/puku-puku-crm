@@ -78,7 +78,7 @@ describe('POST /api/clientes', () => {
       });
 
     expect(res.status).toBe(400);
-    expect(res.body.error).toMatch(/consentimiento/i);
+    expect(res.body.error).toMatch(/consentimiento|boolean/i);
   });
 
   it('rechaza con 409 si el telefono ya existe', async () => {

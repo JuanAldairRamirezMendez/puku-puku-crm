@@ -59,21 +59,7 @@ async function crear(req, res, next) {
       canalOrigen,
       productoFavorito,
       restriccionesAlergias,
-      consentimientoLey29733,
     } = req.body;
-
-    if (!nombreCompleto || !telefono || !canalOrigen) {
-      return res.status(400).json({
-        error: 'nombreCompleto, telefono y canalOrigen son obligatorios.',
-      });
-    }
-
-    if (consentimientoLey29733 !== true) {
-      return res.status(400).json({
-        error:
-          'No se puede registrar al cliente sin su consentimiento explícito (Ley N.° 29733, art. 13°).',
-      });
-    }
 
     // Validación previa: si el teléfono ya existe, se informa al colaborador
     // con el nombre del cliente existente para evitar duplicados y permitir

@@ -98,3 +98,19 @@ model Interaccion {
   @@index([fecha])
   @@map("interacciones")
 }
+
+/// Auditoría de acciones del panel (Ley N.° 29733, art. 13°)
+/// Registro inmutable de quién hizo qué y cuándo.
+model AuditLog {
+  id        String   @id @default(uuid())
+  usuarioId String?
+  accion    String   // ej. "CLIENTE.CREAR", "INTERACCION.CERRAR", "USUARIO.LOGIN"
+  detalle   String?  // JSON con payload relevante (nunca passwords)
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([usuarioId])
+  @@index([accion])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

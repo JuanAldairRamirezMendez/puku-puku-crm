@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
+import { SkeletonKPI, SkeletonSearchResult } from '../components/Skeleton.jsx';
 
 const CANALES = ['PRESENCIAL', 'WHATSAPP', 'INSTAGRAM', 'RAPPI', 'PEDIDOSYA'];
 const STORAGE_KEY = 'puku_recientes';
@@ -47,8 +49,10 @@ function guardarReciente(cliente) {
 const SEARCH_QUERY_KEY = 'puku_search_query';
 const SEARCH_RESULTS_KEY = 'puku_search_results';
 
-export default function Pantalla1Registro({ onSeleccionarCliente }) {
+export default function Pantalla1Registro() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState(() => sessionStorage.getItem(SEARCH_QUERY_KEY) || '');
+  const [cargandoBusqueda, setCargandoBusqueda] = useState(false);
   const [resultados, setResultados] = useState(() => {
     try { return JSON.parse(sessionStorage.getItem(SEARCH_RESULTS_KEY) || '[]'); } catch { return []; }
   });
@@ -84,10 +88,12 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
     setQuery(valor);
     setError('');
     if (valor.trim().length < 2) { setResultados([]); return; }
+    setCargandoBusqueda(true);
     try {
       const res = await api.buscarClientes(valor);
       setResultados(res.data || res);
     } catch (err) { setError(mensajeApiAmigable(err.message)); }
+    finally { setCargandoBusqueda(false); }
   }
 
   async function handleRegistrar(e) {
@@ -97,14 +103,14 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
     try {
       const cliente = await api.crearCliente(form);
       guardarReciente(cliente);
-      onSeleccionarCliente(cliente.id);
+      navigate(`/cliente/${cliente.id}`);
     } catch (err) { setError(mensajeApiAmigable(err.message)); }
   }
 
   function seleccionarCliente(cliente) {
     guardarReciente(cliente);
     setRecientes(cargarRecientes());
-    onSeleccionarCliente(cliente.id);
+    navigate(`/cliente/${cliente.id}`);
   }
 
   function seleccionarCanal(canal) { setForm({ ...form, canalOrigen: canal }); }
@@ -122,7 +128,6 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
 
   return (
     <div className="p1-container">
-      {/* Encabezado */}
       <h1 className="p1-titulo">Búsqueda y registro inicial</h1>
       <p className="p1-subtitulo">
         Busca por nombre o teléfono. Si el cliente no existe, regístralo en menos de 30 segundos.
@@ -132,18 +137,24 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
 
       {/* KPIs */}
       <div className="p1-kpis">
-        <div className="p1-kpi-card">
-          <span className="p1-kpi-num">{hoy !== null ? hoy : '—'}</span>
-          <span className="p1-kpi-label">CLIENTES HOY</span>
-        </div>
-        <div className="p1-kpi-card">
-          <span className="p1-kpi-num">{frecuentesCount !== null ? frecuentesCount : '—'}</span>
-          <span className="p1-kpi-label">FRECUENTES ACTIVOS</span>
-        </div>
-        <div className="p1-kpi-card">
-          <span className="p1-kpi-num">{totalClientes !== null ? totalClientes : '—'}</span>
-          <span className="p1-kpi-label">TOTAL CLIENTES</span>
-        </div>
+        {analyticsData ? (
+          <>
+            <div className="p1-kpi-card">
+              <span className="p1-kpi-num">{hoy !== null ? hoy : '—'}</span>
+              <span className="p1-kpi-label">CLIENTES HOY</span>
+            </div>
+            <div className="p1-kpi-card">
+              <span className="p1-kpi-num">{frecuentesCount !== null ? frecuentesCount : '—'}</span>
+              <span className="p1-kpi-label">FRECUENTES ACTIVOS</span>
+            </div>
+            <div className="p1-kpi-card">
+              <span className="p1-kpi-num">{totalClientes !== null ? totalClientes : '—'}</span>
+              <span className="p1-kpi-label">TOTAL CLIENTES</span>
+            </div>
+          </>
+        ) : (
+          Array.from({ length: 3 }).map((_, i) => <SkeletonKPI key={i} />)
+        )}
       </div>
 
       {/* Barra de búsqueda */}
@@ -177,7 +188,15 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
       )}
 
       {/* Resultados de búsqueda */}
-      {resultados.length > 0 && (
+      {cargandoBusqueda && (
+        <div className="card" style={{ marginTop: 16, padding: 12 }}>
+          <SkeletonSearchResult />
+          <SkeletonSearchResult />
+          <SkeletonSearchResult />
+        </div>
+      )}
+
+      {!cargandoBusqueda && resultados.length > 0 && (
         <div className="card" style={{ marginTop: 16, padding: 0 }} role="listbox" aria-label="Resultados de búsqueda">
           {resultados.map((cliente) => (
             <button
@@ -220,7 +239,6 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
                 onChange={(e) => setForm({ ...form, nombreCompleto: e.target.value })}
                 placeholder="Ej. Ana Torres Quispe" required autoComplete="name" />
             </div>
-
             <div className="campo">
               <label htmlFor="telefono">Teléfono / WhatsApp</label>
               <input id="telefono" type="tel" inputMode="tel" value={form.telefono}
@@ -236,7 +254,6 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
                 {telefonoTocado && telefonoEval.valido ? '✓ Formato válido' : telefonoEval.mensaje || 'Ejemplo: +51 912345678'}
               </p>
             </div>
-
             <fieldset className="campo" style={{ border: 'none', padding: 0, margin: 0 }}>
               <legend style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-brown-700)', marginBottom: 6 }}>Canal de origen</legend>
               <div className="canal-selector" role="group" aria-label="Canal de origen">
@@ -251,33 +268,28 @@ export default function Pantalla1Registro({ onSeleccionarCliente }) {
                 ))}
               </div>
             </fieldset>
-
             <div className="campo">
               <label htmlFor="productoFavorito">Producto favorito</label>
               <input id="productoFavorito" value={form.productoFavorito}
                 onChange={(e) => setForm({ ...form, productoFavorito: e.target.value })}
                 placeholder="Ej. Flat white sin azúcar" />
             </div>
-
             <div className="campo">
               <label htmlFor="restricciones">Restricciones o alergias</label>
               <textarea id="restricciones" rows={2} value={form.restriccionesAlergias}
                 onChange={(e) => setForm({ ...form, restriccionesAlergias: e.target.value })}
                 placeholder="Ej. Intolerante a la lactosa" />
             </div>
-
             <label className="consentimiento" htmlFor="consentimiento">
               <input id="consentimiento" type="checkbox" checked={form.consentimientoLey29733}
                 onChange={(e) => setForm({ ...form, consentimientoLey29733: e.target.checked })} />
               <span>El cliente autoriza el uso de sus datos personales conforme a la Ley N.° 29733 de Protección de Datos Personales.</span>
             </label>
-
             <button className="btn-principal" type="submit" disabled={!puedeGuardar}>Guardar cliente</button>
           </form>
         </div>
       )}
 
-      {/* CTA inferior persistente (cuando no hay resultados ni formulario visible) */}
       {!mostrarFormulario && query.trim().length < 2 && (
         <div className="p1-cta" style={{ marginTop: 24 }}>
           <div className="p1-cta-icono">+</div>
