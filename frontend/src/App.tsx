@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm.jsx';
 import Navbar from './components/Navbar.jsx';
@@ -13,6 +13,14 @@ import PantallaABTest from './pages/PantallaABTest.jsx';
 import { useStore } from './store/index';
 import { SkeletonCard } from './components/Skeleton.jsx';
 
+function AdminRoute({ children }: { children: ReactNode }) {
+  const usuario = useStore((s) => s.usuario);
+  if (usuario?.rol !== 'ADMINISTRADOR' && usuario?.rol !== 'GERENTE') {
+    return <Navigate to="/buscar" replace />;
+  }
+  return children;
+}
+
 function ProtectedLayout() {
   const usuario = useStore((s) => s.usuario);
   if (!usuario) return <Navigate to="/login" replace />;
@@ -26,10 +34,11 @@ function ProtectedLayout() {
           <Route path="/cliente/:id" element={<Pantalla2Historial />} />
           <Route path="/frecuentes" element={<PantallaFrecuentes />} />
           <Route path="/analytics" element={<PantallaAnalytics />} />
-          <Route path="/auditoria" element={<PantallaAuditoria />} />
-          <Route path="/experimentos" element={<PantallaExperimentos />} />
-          <Route path="/feature-store" element={<PantallaFeatureStore />} />
-          <Route path="/ab-test" element={<PantallaABTest />} />
+          <Route path="/auditoria" element={<AdminRoute><PantallaAuditoria /></AdminRoute>} />
+          <Route path="/experimentos" element={<AdminRoute><PantallaExperimentos /></AdminRoute>} />
+          <Route path="/feature-store" element={<AdminRoute><PantallaFeatureStore /></AdminRoute>} />
+          <Route path="/ab-test" element={<AdminRoute><PantallaABTest /></AdminRoute>} />
+          <Route path="*" element={<Navigate to="/buscar" replace />} />
         </Routes>
       </main>
     </div>

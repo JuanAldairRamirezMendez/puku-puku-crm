@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
+import { useStore } from '../store/index';
 const BASE = import.meta.env.VITE_API_URL || '/api';
 import html2canvas from 'html2canvas';
 
@@ -472,15 +473,20 @@ function ModeloML() {
     }
   }
 
+  const usuario = useStore((s) => s.usuario);
+  const puedeEntrenar = usuario?.rol === 'ADMINISTRADOR' || usuario?.rol === 'GERENTE';
+
   return (
     <div style={{ marginTop: 24 }}>
       <div className="card">
         <div className="segmentacion-header">
           <h3>Modelo ML — Predicción de Churn</h3>
           <div className="segmentacion-controls">
-            <button className="btn-principal" onClick={handleEntrenar} disabled={entrenando}>
-              {entrenando ? 'Entrenando…' : 'Entrenar modelo'}
-            </button>
+            {puedeEntrenar && (
+              <button className="btn-principal" onClick={handleEntrenar} disabled={entrenando}>
+                {entrenando ? 'Entrenando…' : 'Entrenar modelo'}
+              </button>
+            )}
           </div>
         </div>
 
@@ -534,14 +540,18 @@ function Segmentacion() {
         <div className="segmentacion-header">
           <h3>Segmentación K-Means</h3>
           <div className="segmentacion-controls">
-            <label>Clusters (k):
-              <select value={k} onChange={(e) => setK(Number(e.target.value))} style={{ marginLeft: 8 }}>
-                {[2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n}</option>)}
-              </select>
-            </label>
-            <button className="btn-principal" onClick={handleSegmentar} disabled={cargando}>
-              {cargando ? 'Segmentando…' : 'Segmentar'}
-            </button>
+            {puedeEntrenar && (
+              <>
+                <label>Clusters (k):
+                  <select value={k} onChange={(e) => setK(Number(e.target.value))} style={{ marginLeft: 8 }}>
+                    {[2, 3, 4, 5, 6].map((n) => <option key={n} value={n}>{n}</option>)}
+                  </select>
+                </label>
+                <button className="btn-principal" onClick={handleSegmentar} disabled={cargando}>
+                  {cargando ? 'Segmentando…' : 'Segmentar'}
+                </button>
+              </>
+            )}
           </div>
         </div>
 
