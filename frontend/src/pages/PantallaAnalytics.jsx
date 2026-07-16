@@ -361,30 +361,13 @@ function ProbabilidadChart({ probabilidad }) {
   );
 }
 
-function LogEntrenamiento({ lines, expanded, onToggle }) {
-  if (!lines || lines.length === 0) return null;
-  const visible = expanded ? lines : lines.slice(0, 30);
-  const hayMas = lines.length > 30 && !expanded;
-
+function BarraCarga() {
   return (
-    <div className="ml-log-wrapper">
-      <div className="ml-log-header">
-        <span className="ml-log-titulo">Salida de consola ({lines.length} líneas)</span>
-        {hayMas && (
-          <button className="btn-secundario" onClick={onToggle} style={{ fontSize: '0.75rem', padding: '4px 12px' }}>
-            Ver todo
-          </button>
-        )}
-        {expanded && (
-          <button className="btn-secundario" onClick={onToggle} style={{ fontSize: '0.75rem', padding: '4px 12px' }}>
-            Colapsar
-          </button>
-        )}
+    <div className="ml-carga-wrapper">
+      <div className="ml-carga-bar">
+        <div className="ml-carga-relleno" />
       </div>
-      <pre className="ml-log-pre">
-        {visible.join('\n')}
-        {hayMas && '\n... y ' + (lines.length - 30) + ' líneas más'}
-      </pre>
+      <p className="ml-carga-texto">Entrenando modelo…</p>
     </div>
   );
 }
@@ -393,22 +376,18 @@ function ModeloML() {
   const [entrenando, setEntrenando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
-  const [logExpanded, setLogExpanded] = useState(false);
 
   async function handleEntrenar() {
     setEntrenando(true);
     setError('');
     setResultado(null);
-    setLogExpanded(false);
     try {
       const res = await api.entrenarModelo();
       setResultado(res);
 
       console.group('🧠 Puku Puku — Entrenamiento ML');
       console.log('Resumen:', { clientes: res.clientes, muestras: res.n_customers, features: res.n_features, modelo: res.best_model, churn_rate: res.churn_rate });
-
       if (res.metrics) {
-        console.table([{ Métrica: 'Accuracy',  Valor: res.metrics.accuracy }]);
         console.table([
           { Métrica: 'F1 Score',   Valor: res.metrics.f1 },
           { Métrica: 'Precision',  Valor: res.metrics.precision },
@@ -417,16 +396,8 @@ function ModeloML() {
           { Métrica: 'ROC-AUC',    Valor: res.metrics.roc_auc },
         ]);
       }
-
-      if (res.targets_met) {
-        console.log('Targets:', res.targets_met);
-      }
-
-      if (res.log?.length > 0) {
-        console.log(`Log completo (${res.log.length} líneas):`);
-        console.log(res.log.join('\n'));
-      }
-
+      if (res.targets_met) console.log('Targets:', res.targets_met);
+      if (res.log?.length > 0) console.log(`Log (${res.log.length} líneas):`, res.log.join('\n'));
       console.groupEnd();
     } catch (err) {
       console.error('❌ Error entrenando modelo:', err);
@@ -450,6 +421,8 @@ function ModeloML() {
 
         {error && <div className="error-msg">{error}</div>}
 
+        {entrenando && <BarraCarga />}
+
         {resultado && resultado.metrics && (
           <>
             <p style={{ fontSize: '0.82rem', color: 'var(--color-brown-700)', margin: '10px 0 16px' }}>
@@ -458,10 +431,6 @@ function ModeloML() {
             <MetricasML metrics={resultado.metrics} bestModel={resultado.best_model} />
             {resultado.churn_rate != null && <ProbabilidadChart probabilidad={resultado.churn_rate} />}
           </>
-        )}
-
-        {resultado && resultado.log && resultado.log.length > 0 && (
-          <LogEntrenamiento lines={resultado.log} expanded={logExpanded} onToggle={() => setLogExpanded((v) => !v)} />
         )}
 
         {!resultado && !error && !entrenando && (
