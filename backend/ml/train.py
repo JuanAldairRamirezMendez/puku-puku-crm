@@ -365,7 +365,7 @@ def train_with_gridsearch(X_train, X_test, y_train, y_test, feature_names):
     svm_grid = GridSearchCV(
         SVC(probability=True, class_weight='balanced', random_state=SEED),
         {
-            'C': [0.1, 1, 10, 100],
+            'C': [0.001, 0.01, 0.1, 1, 10, 100],
             'gamma': ['scale', 'auto', 0.01, 0.1],
             'kernel': ['rbf', 'poly'],
         },
