@@ -734,49 +734,86 @@ def export_gradient_boosting_json(model, feature_names, output_path):
     return export
 
 
+def show_code(code, title=None):
+    lines = [l for l in code.strip().split('\n') if l.strip()]
+    if title:
+        print(f"\n{'─'*80}")
+        print(f"  # {title}")
+        print(f"{'─'*80}")
+    for line in lines:
+        print(f"  >>> {line}")
+
+
 def main():
     print("=" * 80)
     print("  PUKU PUKU CRM — ML Churn Prediction Pipeline")
+    print("  Siguiendo el flujo completo de ML (S14 SVM/KNN + S16 Clustering)")
     print("=" * 80)
 
+    # ── FASE 0: Problem Definition ──────────────────────────
+    show_code("""
+    Objetivo: Predecir churn de clientes (clasificación binaria)
+    Métrica principal: AUC-ROC > 0.85 (estándar Culqi)
+    Métricas secundarias: Accuracy > 80%, F1-Score balanceado
+    Algoritmos supervisados: SVM RBF (GridSearch), KNN, RandomForest, XGBoost, etc.
+    Algoritmos no supervisados: K-Means (elbow+silhouette), DBSCAN (k-distance)
+    """, title="FASE 0: Definicion del Problema y Metricas de Exito")
+
     # ── 1. Generate data ────────────────────────────────────
-    print("\n[1/7] Generating synthetic customer data...")
+    show_code("""
+    import pandas as pd
+    from sklearn.model_selection import train_test_split
+    # Generamos datos sintéticos con patrones realistas de clientes peruanos
+    # 5 perfiles: frecuente_fiel, regular, ocasional, nuevo, riesgo_alto
     n_customers = 8000
     data = generate_customer_data(n_customers)
-    print(f"  Generated {len(data)} customers")
+    print(f'Generated {len(data)} customers')
+    """, title="FASE 1: Recoleccion de Datos")
+    print(f"\n  Generated {len(data)} customers")
 
     # ── 2. Feature engineering ───────────────────────────────
-    print("\n[2/7] Engineering 31 features...")
+    show_code("""
+    # Feature Engineering: extraemos 31 variables de comportamiento
+    # Recency, Frequency, Monetary + Satisfaccion + Canales + Estacionalidad
     df = engineer_features(data)
-    print(f"  Feature matrix: {df.shape[0]} rows x {df.shape[1]} cols")
+    print(df.shape)
+    print(df.info())
+    print(df.describe())
+    """, title="FASE 1 (cont): Exploracion de Datos — Shape, Info, Describe")
+
+    df = engineer_features(data)
+    print(f"\n  Feature matrix: {df.shape[0]} rows x {df.shape[1]} cols")
     print(f"  Features: {[c for c in df.columns if c != 'is_churn']}")
 
     # ── 3. Inject realistic noise ────────────────────────────
-    print("\n[3/7] Injecting realistic noise (nulls + outliers)...")
+    show_code("""
+    # Inyectamos ruido realista: valores nulos (3%) + outliers (2%)
+    # para simular datos reales de produccion
+    df = inject_noise(df, null_pct=0.03, outlier_pct=0.02)
+    print(df['churn'].value_counts(normalize=True))  # Ver balanceo de clases
+    """, title="FASE 1 (cont): Distribucion de Clases y Valores Nulos")
     df = inject_noise(df, null_pct=0.03, outlier_pct=0.02)
 
     churn_rate = df['is_churn'].mean()
-    print(f"  Churn rate: {churn_rate:.1%} ({int(df['is_churn'].sum())}/{len(df)})")
-
-    # ── EDA: Exploratory Data Analysis ──────────────────────
-    print(f"\n{'='*80}")
-    print(f"  EXPLORATORY DATA ANALYSIS")
-    print(f"{'='*80}")
-    print(f"\n  Shape: {df.shape}")
-    print(f"\n  Data types:")
-    for col, dtype in df.dtypes.items():
-        print(f"    {col}: {dtype}")
-    print(f"\n  Descriptive statistics (numeric):")
-    numeric_cols = [c for c in feature_cols if df[c].dtype in ('float64', 'int64')]
-    desc = df[numeric_cols].describe().to_string()
-    for line in desc.split('\n'):
-        print(f"    {line}")
-    print(f"\n  Class distribution:")
     vc = df['is_churn'].value_counts()
     vcp = df['is_churn'].value_counts(normalize=True)
     for label in [0, 1]:
         pct = vcp.get(label, 0) * 100
-        print(f"    {'No Churn' if label == 0 else 'Churn'}: {vc.get(label, 0):>5d}  ({pct:.1f}%)")
+        print(f"  {'No Churn' if label == 0 else 'Churn'}: {vc.get(label, 0):>5d}  ({pct:.1f}%)")
+    print(f"  Churn rate: {churn_rate:.1%} ({int(df['is_churn'].sum())}/{len(df)})")
+
+    # ── EDA: Exploratory Data Analysis ──────────────────────
+    feature_cols = [c for c in df.columns if c != 'is_churn']
+    numeric_cols = [c for c in feature_cols if df[c].dtype in ('float64', 'int64')]
+
+    print(f"\n{chr(61)*80}")
+    print(f"  Data types:")
+    for col, dtype in df.dtypes.items():
+        print(f"    {col}: {dtype}")
+    print(f"\n  Descriptive statistics (numeric):")
+    desc = df[numeric_cols].describe().to_string()
+    for line in desc.split('\n'):
+        print(f"    {line}")
     print(f"\n  Null counts (top 10):")
     null_counts = df.isna().sum().sort_values(ascending=False)
     null_cols = null_counts[null_counts > 0]
@@ -785,13 +822,27 @@ def main():
             print(f"    {col}: {int(null_counts[col])} ({null_counts[col]/len(df)*100:.1f}%)")
     else:
         print(f"    (none)")
-    print(f"\n  Correlation with target (top 10):")
+
+    show_code("""
+    # Matriz de correlacion de Pearson con la variable target (churn)
+    # Identificamos features mas predictivas
+    corrs = df[numeric_cols].corrwith(df['is_churn']).abs().sort_values(ascending=False)
+    print(corrs.head(10))
+    """, title="FASE 1 (cont): Correlacion con Target")
     corrs = df[numeric_cols].corrwith(df['is_churn']).abs().sort_values(ascending=False)
     for col in corrs.index[:10]:
         r = df[numeric_cols].corrwith(df['is_churn'])[col]
         print(f"    {col}: {r:.4f}")
 
     # ── IQR Outlier Detection ───────────────────────────────
+    show_code("""
+    # Metodo IQR (recomendado para KNN):
+    # Q1 = df.quantile(0.25)
+    # Q3 = df.quantile(0.75)
+    # IQR = Q3 - Q1
+    # df_clean = df[~((df < (Q1 - 1.5*IQR)) | (df > (Q3 + 1.5*IQR))).any(axis=1)]
+    """, title="FASE 2.3: Deteccion y Manejo de Outliers (IQR)")
+
     print(f"\n  [IQR] Detectando outliers por feature...")
     n_before = len(df)
     outlier_mask = pd.Series(False, index=df.index)
@@ -809,21 +860,39 @@ def main():
         if n_out > 0:
             print(f"    {col}: {n_out} outliers ({n_out/len(df)*100:.1f}%)")
     n_after = n_before - outlier_mask.sum()
-    print(f"  Filas antes: {n_before}, después de remover outliers: {n_after} ({n_before - n_after} eliminadas)")
+    print(f"  Filas antes: {n_before}, despues de remover outliers: {n_after} ({n_before - n_after} eliminadas)")
 
     # ── 4. Preprocessing (imputation + scaling + split) ─────
-    print("\n[4/7] Preprocessing pipeline...")
-    feature_cols = [c for c in df.columns if c != 'is_churn']
+    show_code("""
+    # 2.1 Imputacion de valores faltantes con mediana (robusta a outliers)
+    from sklearn.impute import SimpleImputer
+    imputer = SimpleImputer(strategy='median')
+    X_imputed = imputer.fit_transform(X)
+
+    # 2.2 Codificacion One-Hot (variables categoricas nominales)
+    # Ya implementado en feature engineering como columnas canal_*
+
+    # 3. Escalado: SVM usa StandardScaler; KNN puede usar MinMaxScaler
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X_imputed)
+
+    # 4. Division train-test estratificada (70-30)
+    from sklearn.model_selection import train_test_split
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_scaled, y, test_size=0.25, stratify=y, random_state=42
+    )
+    # IMPORTANTE: fit_transform() solo en train → transform() en test
+    """, title="FASES 2-4: Preprocesamiento Completo (Imputacion, Escalado, Split)")
+
     X = df[feature_cols]
     y = df['is_churn'].values
 
-    # Impute nulls
     print("  Imputing nulls with median...")
     imputer = SimpleImputer(strategy='median')
     X_imputed = imputer.fit_transform(X)
     print(f"  Nulls after imputation: {np.isnan(X_imputed).sum()}")
 
-    # Scale + split
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X_imputed)
 
@@ -833,6 +902,51 @@ def main():
     print(f"  Train: {len(X_train)}, Test: {len(X_test)} (stratified)")
 
     # ── 5. Classification with GridSearchCV ──────────────────
+    show_code("""
+    # 5.1 SVM — Clasificacion con margen maximo + GridSearchCV
+    from sklearn.svm import SVC
+    from sklearn.model_selection import GridSearchCV
+
+    param_grid = {
+        'C': [0.001, 0.01, 0.1, 1, 10, 100],   # Regularizacion
+        'gamma': ['scale', 'auto', 0.01, 0.1],  # Alcance RBF
+        'kernel': ['rbf', 'poly'],
+    }
+    svm = GridSearchCV(
+        SVC(probability=True, class_weight='balanced'),
+        param_grid, cv=5, scoring='roc_auc'
+    )
+    svm.fit(X_train, y_train)
+    print(f"Mejores params: {svm.best_params_}")
+    # C bajo → margen amplio (underfitting)
+    # C alto → margen estrecho (overfitting)
+    # gamma bajo → frontera suave
+    # gamma alto → frontera compleja
+    """, title="FASE 5.1: SVM — Clasificacion con Margen Maximo")
+
+    show_code("""
+    # 5.2 KNN — Clasificacion por vecinos + GridSearchCV
+    from sklearn.neighbors import KNeighborsClassifier
+    from sklearn.preprocessing import MinMaxScaler
+
+    # KNN con StandardScaler
+    knn_grid = GridSearchCV(
+        KNeighborsClassifier(weights='distance'),
+        {'n_neighbors': [3, 5, 7, 9, 11, 15, 21], 'metric': ['euclidean', 'manhattan', 'minkowski']},
+        cv=5, scoring='roc_auc'
+    )
+
+    # KNN con MinMaxScaler (recomendado para distancias)
+    scaler_mm = MinMaxScaler()
+    X_train_mm = scaler_mm.fit_transform(X_train)
+    knn_mm_grid = GridSearchCV(..., cv=5, scoring='roc_auc')
+    # k impar evita empates en clasificacion binaria
+    """, title="FASE 5.2: KNN — Clasificacion por Vecinos")
+
+    show_code("""
+    # Entrenamos 12 modelos supervisados + GridSearchCV con 5-fold CV
+    # Comparacion completa: SVM, KNN, KNN+MM, RandomForest, XGBoost, LightGBM, ...
+    """, title="FASE 5 (completo): Entrenamiento y Optimizacion")
     print(f"\n{'='*80}")
     print(f"  SUPERVISED CLASSIFICATION")
     print(f"{'='*80}")
@@ -851,7 +965,27 @@ def main():
     print(f"     F1:        {best_metrics['f1']:.4f}")
     print(f"     ROC-AUC:   {best_metrics['roc_auc']:.4f}")
 
-    # Classification report + Confusion matrix
+    show_code("""
+    # FASE 6.1: Evaluacion — Metricas de Clasificacion Supervisada
+    from sklearn.metrics import (
+        accuracy_score, precision_score, recall_score,
+        f1_score, roc_auc_score, confusion_matrix, classification_report
+    )
+    y_pred = svm.predict(X_test)
+    y_proba = svm.predict_proba(X_test)[:, 1]
+    print(f"Accuracy:  {accuracy_score(y_test, y_pred):.3f}")
+    print(f"Precision: {precision_score(y_test, y_pred):.3f}")
+    print(f"Recall:    {recall_score(y_test, y_pred):.3f}")
+    print(f"F1-Score:  {f1_score(y_test, y_pred):.3f}")
+    print(f"AUC-ROC:   {roc_auc_score(y_test, y_proba):.3f}")
+    print(classification_report(y_test, y_pred))
+    print(confusion_matrix(y_test, y_pred))
+    # Interpretacion:
+    # Precision: TP/(TP+FP) — critico cuando FP es costoso (fraude)
+    # Recall:    TP/(TP+FN) — critico cuando FN es costoso (diagnostico)
+    # F1-Score:  balance Precision/Recall para datos desbalanceados
+    """, title="FASE 6.1: Evaluacion y Metricas de Clasificacion")
+
     y_pred_best = best_model_obj.predict(X_test if best_name != 'KNN_MM' else X_test_mm)
     y_prob_best = best_model_obj.predict_proba(X_test if best_name != 'KNN_MM' else X_test_mm)[:, 1]
     print(f"\n  Classification Report:")
@@ -874,6 +1008,14 @@ def main():
     print(f"  False Negatives: {fn}, True Positives: {tp}")
 
     # ── 6. Threshold calibration ────────────────────────────
+    show_code("""
+    # CLAVE 5: Umbral de decision calibrado
+    from sklearn.metrics import precision_recall_curve
+    precisions, recalls, thresholds = precision_recall_curve(y_test, y_proba)
+    f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-10)
+    best_threshold = thresholds[np.argmax(f1_scores[:-1])]
+    y_pred_optimized = (y_proba >= best_threshold).astype(int)
+    """, title="CLAVE 5: Umbral de Decision Calibrado")
     print(f"\n{'='*80}")
     print(f"  THRESHOLD CALIBRATION")
     print(f"{'='*80}")
@@ -898,6 +1040,43 @@ def main():
     print(f"{'='*80}")
 
     # ── 7. Clustering (unsupervised) ────────────────────────
+    show_code("""
+    # FASE 5.3: K-Means — Clustering Particional
+    from sklearn.cluster import KMeans
+    from sklearn.metrics import silhouette_score
+    # Metodo del codo + silhouette para encontrar k optimo
+    for k in range(2, 11):
+        kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+        labels = kmeans.fit_predict(X_scaled)
+        inertias.append(kmeans.inertia_)
+        silhouettes.append(silhouette_score(X_scaled, labels))
+    optimal_k = range(2, 11)[np.argmax(silhouettes)]
+    """, title="FASE 5.3: K-Means — Clustering Particional")
+
+    show_code("""
+    # FASE 5.4: DBSCAN — Clustering por Densidad
+    from sklearn.cluster import DBSCAN
+    from sklearn.neighbors import NearestNeighbors
+    # k-distance graph para encontrar eps optimo
+    neighbors = NearestNeighbors(n_neighbors=5)
+    distances, _ = neighbors.fit(X_scaled).kneighbors(X_scaled)
+    k_distances = np.sort(distances[:, 4])
+    eps_opt = k_distances[np.argmax(np.diff(k_distances))]
+    dbscan = DBSCAN(eps=eps_opt, min_samples=5)
+    labels = dbscan.fit_predict(X_scaled)
+    # labels = -1 → outliers detectados nativamente
+    """, title="FASE 5.4: DBSCAN — Clustering por Densidad")
+
+    show_code("""
+    # FASE 6.2: Evaluacion de Clustering No Supervisado
+    from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
+    sil = silhouette_score(X_scaled, labels)
+    db = davies_bouldin_score(X_scaled, labels)
+    ch = calinski_harabasz_score(X_scaled, labels)
+    # Silhouette > 0.5: Buena separacion
+    # Davies-Bouldin < 1.0: Clusters bien definidos
+    # Calinski-Harabasz: Mayor → mejor
+    """, title="FASE 6.2: Evaluacion de Clustering No Supervisado")
     print(f"\n{'='*80}")
     print(f"  UNSUPERVISED CLUSTERING")
     print(f"{'='*80}")
@@ -951,6 +1130,15 @@ def main():
         }, f, ensure_ascii=False)
 
     # Save model comparison CSV
+    show_code("""
+    # FASE 7: Comparacion y Seleccion de Algoritmo
+    # Criterio:   SVM        KNN        K-Means    DBSCAN
+    # velocidad:  lento      rapido     rapido     rapido
+    # interpret.: baja       alta       alta       baja
+    # outliers:   alta       baja       -          nativa
+    # formas:     kernel ✓   ✓          ✗          ✓
+    # Seleccion:  mejor AUC  mejor k    mejor sil  mejor eps
+    """, title="FASE 7: Comparacion y Seleccion de Algoritmo")
     results_df = pd.DataFrame(results).sort_values('roc_auc', ascending=False)
     results_df.to_csv(OUTPUT_DIR / 'model_comparison.csv', index=False)
     print(f"\n  Full comparison saved to model_comparison.csv")
