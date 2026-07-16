@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const MODELOS = ['', 'RandomForest', 'XGBoost', 'GradientBoosting', 'LogisticRegression'];
+const BASE = import.meta.env.VITE_API_URL || '/api';
 
 export default function PantallaExperimentos() {
   const [runs, setRuns] = useState([]);
@@ -11,7 +12,7 @@ export default function PantallaExperimentos() {
   async function cargar(p) {
     try {
       const params = new URLSearchParams({ page: String(p), limit: '10' });
-      const res = await fetch(`/api/experimentos?${params}`, { credentials: 'include' });
+      const res = await fetch(`${BASE}/experimentos?${params}`, { credentials: 'include' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setRuns(data.data);

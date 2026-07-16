@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 
+const BASE = import.meta.env.VITE_API_URL || '/api';
 const STATUS_CLASS = { draft: 'badge-draft', running: 'badge-running', completed: 'badge-completed', cancelled: 'badge-cancelled' };
 
 export default function PantallaABTest() {
@@ -10,7 +11,7 @@ export default function PantallaABTest() {
 
   async function cargar() {
     try {
-      const res = await fetch('/api/ab-test', { credentials: 'include' });
+      const res = await fetch(`${BASE}/ab-test`, { credentials: 'include' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setTests(data);
@@ -25,7 +26,7 @@ export default function PantallaABTest() {
   async function handleCrear(e) {
     e.preventDefault();
     try {
-      const res = await fetch('/api/ab-test', {
+      const res = await fetch(`${BASE}/ab-test`, {
         method: 'POST', credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
@@ -42,14 +43,14 @@ export default function PantallaABTest() {
 
   async function handleIniciar(id) {
     try {
-      await fetch(`/api/ab-test/${id}/iniciar`, { method: 'POST', credentials: 'include' });
+      await fetch(`${BASE}/ab-test/${id}/iniciar`, { method: 'POST', credentials: 'include' });
       cargar();
     } catch (err) { setError(err.message); }
   }
 
   async function handleCompletar(id) {
     try {
-      await fetch(`/api/ab-test/${id}/completar`, { method: 'POST', credentials: 'include' });
+      await fetch(`${BASE}/ab-test/${id}/completar`, { method: 'POST', credentials: 'include' });
       cargar();
     } catch (err) { setError(err.message); }
   }

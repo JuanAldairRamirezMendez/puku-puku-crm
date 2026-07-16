@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 
+const BASE = import.meta.env.VITE_API_URL || '/api';
+
 export default function PantallaFeatureStore() {
   const [features, setFeatures] = useState([]);
   const [error, setError] = useState('');
@@ -8,7 +10,7 @@ export default function PantallaFeatureStore() {
 
   async function cargar() {
     try {
-      const res = await fetch('/api/feature-store', { credentials: 'include' });
+      const res = await fetch(`${BASE}/feature-store`, { credentials: 'include' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setFeatures(data);
@@ -23,7 +25,7 @@ export default function PantallaFeatureStore() {
   async function handleCrear(e) {
     e.preventDefault();
     try {
-      const res = await fetch('/api/feature-store', {
+      const res = await fetch(`${BASE}/feature-store`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },

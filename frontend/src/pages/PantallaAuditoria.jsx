@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { api } from '../api/client';
 
 const ACCIONES = ['', 'USUARIO.LOGIN', 'CLIENTE.CREAR', 'INTERACCION.CERRAR'];
+const BASE = import.meta.env.VITE_API_URL || '/api';
 
 export default function PantallaAuditoria() {
   const [logs, setLogs] = useState([]);
@@ -14,7 +14,7 @@ export default function PantallaAuditoria() {
     try {
       const params = new URLSearchParams({ page: String(p), limit: '20' });
       if (accion) params.set('accion', accion);
-      const res = await fetch(`/api/audit?${params}`, { credentials: 'include' });
+      const res = await fetch(`${BASE}/audit?${params}`, { credentials: 'include' });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
       setLogs(data.data);
