@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../api/client';
+const BASE = import.meta.env.VITE_API_URL || '/api';
 import html2canvas from 'html2canvas';
 
 const COLORES_CLUSTER = ['#c1502e', '#4f7942', '#2e6b8a', '#9c6b3e', '#7a4f8a', '#c98a2e', '#5b3a21', '#b3261e'];
@@ -361,13 +362,15 @@ function ProbabilidadChart({ probabilidad }) {
   );
 }
 
-function BarraCarga() {
+function BarraCarga({ progress = 0, message = 'Entrenando modelo…' }) {
+  const indet = progress === 0 ? ' indeterminado' : '';
+  const pct = Math.min(progress, 100);
   return (
     <div className="ml-carga-wrapper">
       <div className="ml-carga-bar">
-        <div className="ml-carga-relleno" />
+        <div className={`ml-carga-relleno${indet}`} style={{ width: `${pct}%` }} />
       </div>
-      <p className="ml-carga-texto">Entrenando modelo…</p>
+      <p className="ml-carga-texto">{pct > 0 ? `${Math.round(pct)}% — ` : ''}{message}</p>
     </div>
   );
 }
@@ -376,38 +379,95 @@ function ModeloML() {
   const [entrenando, setEntrenando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
+  const [progreso, setProgreso] = useState(0);
+  const [mensaje, setMensaje] = useState('');
 
   async function handleEntrenar() {
     setEntrenando(true);
     setError('');
     setResultado(null);
-    try {
-      const res = await api.entrenarModelo();
-      setResultado(res);
+    setProgreso(0);
+    setMensaje('Iniciando entrenamiento...');
 
-      if (res._fallback) {
-        console.warn('⚠️  Python no disponible en el servidor. Usando modelo pre-entrenado del repositorio.');
-        console.log('Para entrenar en local: python backend/ml/train.py');
-      } else {
-        console.group('🧠 Puku Puku — Entrenamiento ML');
-        console.log('Resumen:', { clientes: res.clientes, muestras: res.n_customers, features: res.n_features, modelo: res.best_model, churn_rate: res.churn_rate });
-        if (res.metrics) {
-          console.table([
-            { Métrica: 'F1 Score',   Valor: res.metrics.f1 },
-            { Métrica: 'Precision',  Valor: res.metrics.precision },
-            { Métrica: 'Recall',     Valor: res.metrics.recall },
-            { Métrica: 'Accuracy',   Valor: res.metrics.accuracy },
-            { Métrica: 'ROC-AUC',    Valor: res.metrics.roc_auc },
-          ]);
+    console.group('🧠 Puku Puku — Entrenamiento ML (streaming)');
+
+    try {
+      const response = await fetch(`${BASE}/reportes/entrenar-stream`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { Accept: 'text/event-stream' },
+      });
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Error ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split('\n\n');
+        buffer = parts.pop();
+
+        for (const part of parts) {
+          const lines = part.split('\n');
+          let eventType = 'message';
+          let dataStr = '';
+
+          for (const line of lines) {
+            if (line.startsWith('event: ')) eventType = line.slice(7);
+            else if (line.startsWith('data: ')) dataStr = line.slice(6);
+          }
+
+          if (!dataStr) continue;
+
+          try {
+            const data = JSON.parse(dataStr);
+
+            if (eventType === 'log') {
+              console.log(`🧠 ${data.message}`);
+            } else if (eventType === 'progress') {
+              if (data.progress != null) setProgreso(data.progress);
+              if (data.message) setMensaje(data.message);
+            } else if (eventType === 'done') {
+              setProgreso(100);
+              setMensaje('Completado');
+              console.log('✅ Entrenamiento completado en', ((data.elapsed || 0) / 1000).toFixed(1), 's');
+              if (data.results) {
+                const r = data.results;
+                console.log('Resumen:', { clientes: r.n_customers, features: r.n_features, modelo: r.best_model, churn_rate: r.churn_rate });
+                if (r.metrics) {
+                  console.table([
+                    { Métrica: 'F1 Score', Valor: r.metrics.f1 },
+                    { Métrica: 'Precision', Valor: r.metrics.precision },
+                    { Métrica: 'Recall', Valor: r.metrics.recall },
+                    { Métrica: 'Accuracy', Valor: r.metrics.accuracy },
+                    { Métrica: 'ROC-AUC', Valor: r.metrics.roc_auc },
+                  ]);
+                }
+              }
+              setResultado(data.results);
+              setEntrenando(false);
+            } else if (eventType === 'error') {
+              console.error('❌', data.message);
+              setError(data.message);
+              setEntrenando(false);
+            }
+          } catch (parseErr) {
+            console.warn('Parse error:', parseErr.message, dataStr.slice(0, 100));
+          }
         }
-        if (res.targets_met) console.log('Targets:', res.targets_met);
-        if (res.log?.length > 0) console.log(`Log (${res.log.length} líneas):`, res.log.join('\n'));
-        console.groupEnd();
       }
     } catch (err) {
       console.error('❌ Error entrenando modelo:', err);
       setError(err.message);
     } finally {
+      console.groupEnd();
       setEntrenando(false);
     }
   }
@@ -426,7 +486,7 @@ function ModeloML() {
 
         {error && <div className="error-msg">{error}</div>}
 
-        {entrenando && <BarraCarga />}
+        {entrenando && <BarraCarga progress={progreso} message={mensaje} />}
 
         {resultado && resultado.metrics && (
           <>

@@ -893,9 +893,14 @@ p.subtitulo-pantalla {
 
 .ml-carga-relleno {
   height: 100%;
-  width: 30%;
+  width: 0%;
   background: var(--color-terracotta);
   border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.ml-carga-relleno.indeterminado {
+  width: 30%;
   animation: ml-carga 1.4s ease-in-out infinite;
 }
 

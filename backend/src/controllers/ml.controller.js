@@ -165,4 +165,132 @@ function status(req, res) {
   });
 }
 
-module.exports = { entrenar, status };
+async function entrenarStream(req, res) {
+  if (entrenando) {
+    return res.status(409).json({ error: 'Ya hay un entrenamiento en curso' });
+  }
+
+  entrenando = true;
+  const lines = [];
+
+  res.writeHead(200, {
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+    'X-Accel-Buffering': 'no',
+  });
+
+  const send = (event, data) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  send('progress', { step: 'init', message: 'Iniciando entrenamiento...', progress: 0 });
+
+  try {
+    const startTime = Date.now();
+    const child = spawn(PYTHON, [TRAIN_SCRIPT, '--json'], {
+      cwd: path.join(__dirname, '../..'),
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+
+    let totalLines = 0;
+    let progress = 5;
+
+    child.stdout.on('data', (data) => {
+      const text = data.toString('utf-8');
+      lines.push(text);
+      const cleanLines = text.split('\n').filter(Boolean);
+      for (const line of cleanLines) {
+        totalLines++;
+        send('log', { message: line });
+      }
+      progress = Math.min(95, 5 + totalLines * 2);
+      send('progress', { progress, message: `Entrenando... (${totalLines} líneas)` });
+    });
+
+    child.stderr.on('data', (data) => {
+      const text = data.toString('utf-8');
+      lines.push(text);
+      const cleanLines = text.split('\n').filter(Boolean);
+      for (const line of cleanLines) {
+        send('log', { message: `[stderr] ${line}` });
+      }
+    });
+
+    await new Promise((resolve, reject) => {
+      child.on('close', (code) => {
+        entrenando = false;
+        if (code !== 0) {
+          reject(new Error(`train.py termino con codigo ${code}`));
+        } else {
+          resolve();
+        }
+      });
+      child.on('error', (err) => {
+        entrenando = false;
+        reject(err);
+      });
+    });
+
+    send('progress', { progress: 97, message: 'Guardando resultados...' });
+
+    const log = lines.join('\n');
+    let results = null;
+    try {
+      if (fs.existsSync(RESULTS_FILE)) {
+        results = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf-8'));
+      }
+    } catch {}
+
+    if (results) {
+      try {
+        await prisma.experimentRun.create({
+          data: {
+            status: 'completed',
+            bestModel: results.best_model,
+            nCustomers: results.n_customers,
+            nFeatures: results.n_features,
+            churnRate: results.churn_rate,
+            accuracy: results.metrics?.accuracy,
+            precision: results.metrics?.precision,
+            recall: results.metrics?.recall,
+            f1: results.metrics?.f1,
+            rocAuc: results.metrics?.roc_auc,
+            targetsMet: results.targets_met?.accuracy_80pct && results.targets_met?.roc_auc_085,
+            metrics: JSON.stringify(results.comparison),
+            log: log.slice(0, 10000),
+            modelPath: results.model_path,
+            completedAt: new Date(),
+          },
+        });
+      } catch (dbErr) {
+        console.error('Error al persistir experiment run:', dbErr.message);
+      }
+    }
+
+    send('done', {
+      success: true,
+      elapsed: Date.now() - startTime,
+      results,
+      log: log.slice(0, 5000),
+    });
+    res.end();
+  } catch (err) {
+    entrenando = false;
+
+    try {
+      await prisma.experimentRun.create({
+        data: {
+          status: 'failed',
+          log: lines.join('\n').slice(0, 10000),
+          completedAt: new Date(),
+        },
+      });
+    } catch {}
+
+    send('error', { message: err.message, log: lines.join('\n').slice(0, 5000) });
+    res.end();
+  }
+}
+
+module.exports = { entrenar, status, entrenarStream };

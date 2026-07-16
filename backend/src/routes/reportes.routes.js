@@ -12,6 +12,7 @@ const {
 const {
   entrenar,
   status,
+  entrenarStream,
 } = require('../controllers/ml.controller');
 const { requireAuth } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roles');
@@ -32,6 +33,7 @@ router.post('/predecir-churn', validate(predecirChurnSchema), predecirChurn);
 router.get('/predecir-churn/:id', predecirChurnCliente);
 router.post('/entrenar-modelo', reentrenarModelo);
 router.post('/entrenar', entrenar);
+router.post('/entrenar-stream', entrenarStream);
 router.get('/entrenar/status', status);
 
 module.exports = router;
