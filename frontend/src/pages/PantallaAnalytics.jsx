@@ -403,7 +403,33 @@ function ModeloML() {
     try {
       const res = await api.entrenarModelo();
       setResultado(res);
+
+      console.group('🧠 Puku Puku — Entrenamiento ML');
+      console.log('Resumen:', { clientes: res.clientes, muestras: res.n_customers, features: res.n_features, modelo: res.best_model, churn_rate: res.churn_rate });
+
+      if (res.metrics) {
+        console.table([{ Métrica: 'Accuracy',  Valor: res.metrics.accuracy }]);
+        console.table([
+          { Métrica: 'F1 Score',   Valor: res.metrics.f1 },
+          { Métrica: 'Precision',  Valor: res.metrics.precision },
+          { Métrica: 'Recall',     Valor: res.metrics.recall },
+          { Métrica: 'Accuracy',   Valor: res.metrics.accuracy },
+          { Métrica: 'ROC-AUC',    Valor: res.metrics.roc_auc },
+        ]);
+      }
+
+      if (res.targets_met) {
+        console.log('Targets:', res.targets_met);
+      }
+
+      if (res.log?.length > 0) {
+        console.log(`Log completo (${res.log.length} líneas):`);
+        console.log(res.log.join('\n'));
+      }
+
+      console.groupEnd();
     } catch (err) {
+      console.error('❌ Error entrenando modelo:', err);
       setError(err.message);
     } finally {
       setEntrenando(false);

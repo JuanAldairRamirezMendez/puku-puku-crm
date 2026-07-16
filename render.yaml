@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: puku-puku-crm-api
+    env: node
+    region: oregon
+    buildCommand: |
+      python3 -m pip install --break-system-packages -r apf3/requirements.txt 2>/dev/null || python3 -m pip install --user -r apf3/requirements.txt 2>/dev/null || true
+      python3 -m pip install --break-system-packages -r backend/ml/requirements.txt 2>/dev/null || python3 -m pip install --user -r backend/ml/requirements.txt 2>/dev/null || true
+      cd backend && npm install && npx prisma generate && npx prisma migrate deploy
+    startCommand: node backend/src/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+
+  - type: web
+    name: puku-puku-crm-web
+    env: static
+    region: oregon
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    envVars:
+      - key: VITE_API_URL
+        value: https://puku-puku-crm-api-1qj2.onrender.com/api

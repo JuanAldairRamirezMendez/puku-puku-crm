@@ -1,41 +1,29 @@
 #!/usr/bin/env bash
-# Instala dependencias Python para ML. Corre en postinstall de npm.
-set -e
+# Instala dependencias Python para ML si no están ya instaladas.
+# Se ejecuta desde start (sh setup_python.sh && node src/server.js)
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 APF3_REQ="$SCRIPT_DIR/../apf3/requirements.txt"
 ML_REQ="$SCRIPT_DIR/ml/requirements.txt"
 
-# Detectar python
 PYTHON=""
-if command -v python3 &>/dev/null; then
-  PYTHON=python3
-elif command -v python &>/dev/null; then
-  PYTHON=python
-fi
-
-if [ -z "$PYTHON" ]; then
-  echo "[setup_python] No se encontró python. Saltando instalación de dependencias ML."
-  exit 0
-fi
+command -v python3 &>/dev/null && PYTHON=python3
+command -v python &>/dev/null && PYTHON=python
+[ -z "$PYTHON" ] && exit 0
 
 PIP="$PYTHON -m pip"
 
-echo "[setup_python] Usando: $PYTHON ($($PYTHON --version 2>&1))"
+# Si numpy ya está instalado, salir rápido (skip)
+$PYTHON -c "import numpy; import joblib" 2>/dev/null && exit 0
 
-# Probar con --break-system-packages (pip >= 23.0), luego --user, luego sin flags
+echo "[setup_python] Instalando dependencias Python para ML..."
+
 install_req() {
-  local req_file="$1"
-  if [ ! -f "$req_file" ]; then
-    echo "[setup_python] Requeriments no encontrado: $req_file"
-    return 0
-  fi
-  echo "[setup_python] Instalando: $req_file"
-  $PIP install --break-system-packages -r "$req_file" 2>/dev/null && return 0
-  $PIP install --user -r "$req_file" 2>/dev/null && return 0
-  $PIP install -r "$req_file" 2>/dev/null && return 0
-  echo "[setup_python] WARNING: no se pudieron instalar $req_file"
-  return 0
+  local f="$1"
+  [ ! -f "$f" ] && return 0
+  $PIP install --break-system-packages -r "$f" 2>/dev/null && return 0
+  $PIP install --user -r "$f" 2>/dev/null && return 0
+  $PIP install -r "$f" 2>/dev/null
 }
 
 install_req "$APF3_REQ"
