@@ -32,7 +32,7 @@ import pandas as pd
 from sklearn.model_selection import (
     train_test_split, StratifiedKFold, cross_val_score, GridSearchCV
 )
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.impute import SimpleImputer
 from sklearn.pipeline import Pipeline
 from sklearn.metrics import (
@@ -353,6 +353,10 @@ def train_with_gridsearch(X_train, X_test, y_train, y_test, feature_names):
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
+    scaler_mm = MinMaxScaler()
+    X_train_mm = scaler_mm.fit_transform(X_train)
+    X_test_mm = scaler_mm.transform(X_test)
+
     # ── Define classifiers ──────────────────────────────────
     models = {}
 
@@ -371,7 +375,7 @@ def train_with_gridsearch(X_train, X_test, y_train, y_test, feature_names):
     print(f"    SVM best params: {svm_grid.best_params_}  (AUC={svm_grid.best_score_:.4f})")
     models['SVM_RBF'] = svm_grid.best_estimator_
 
-    # KNN with GridSearch
+    # KNN with GridSearch + MinMaxScaler
     print("\n  [GridSearchCV] KNN — buscando k, metric...")
     knn_grid = GridSearchCV(
         KNeighborsClassifier(weights='distance'),
@@ -382,8 +386,25 @@ def train_with_gridsearch(X_train, X_test, y_train, y_test, feature_names):
         cv=5, scoring='roc_auc', n_jobs=-1, verbose=0
     )
     knn_grid.fit(X_train_scaled, y_train)
-    print(f"    KNN best params: {knn_grid.best_params_}  (AUC={knn_grid.best_score_:.4f})")
+    print(f"    KNN (StandardScaler) best params: {knn_grid.best_params_}  (AUC={knn_grid.best_score_:.4f})")
     models['KNN'] = knn_grid.best_estimator_
+
+    # KNN with MinMaxScaler
+    print("\n  [GridSearchCV] KNN + MinMaxScaler — buscando k, metric...")
+    scaler_mm = MinMaxScaler()
+    X_train_mm = scaler_mm.fit_transform(X_train)
+    X_test_mm = scaler_mm.transform(X_test)
+    knn_mm_grid = GridSearchCV(
+        KNeighborsClassifier(weights='distance'),
+        {
+            'n_neighbors': [3, 5, 7, 9, 11, 15, 21],
+            'metric': ['euclidean', 'manhattan', 'minkowski'],
+        },
+        cv=5, scoring='roc_auc', n_jobs=-1, verbose=0
+    )
+    knn_mm_grid.fit(X_train_mm, y_train)
+    print(f"    KNN (MinMaxScaler) best params: {knn_mm_grid.best_params_}  (AUC={knn_mm_grid.best_score_:.4f})")
+    models['KNN_MM'] = knn_mm_grid.best_estimator_
 
     # Fixed-param classifiers (tuned manually or fast)
     models['LogisticRegression'] = LogisticRegression(
@@ -456,6 +477,10 @@ def train_with_gridsearch(X_train, X_test, y_train, y_test, feature_names):
                 # Already fitted on X_train_scaled, just predict
                 y_pred = model.predict(X_test_scaled)
                 y_prob = model.predict_proba(X_test_scaled)[:, 1]
+            elif name == 'KNN_MM':
+                # Fitted on X_train_mm, predict on X_test_mm
+                y_pred = model.predict(X_test_mm)
+                y_prob = model.predict_proba(X_test_mm)[:, 1]
             else:
                 model.fit(X_train_bal, y_train_bal)
                 y_pred = model.predict(X_test_scaled)
@@ -733,6 +758,59 @@ def main():
     churn_rate = df['is_churn'].mean()
     print(f"  Churn rate: {churn_rate:.1%} ({int(df['is_churn'].sum())}/{len(df)})")
 
+    # ── EDA: Exploratory Data Analysis ──────────────────────
+    print(f"\n{'='*80}")
+    print(f"  EXPLORATORY DATA ANALYSIS")
+    print(f"{'='*80}")
+    print(f"\n  Shape: {df.shape}")
+    print(f"\n  Data types:")
+    for col, dtype in df.dtypes.items():
+        print(f"    {col}: {dtype}")
+    print(f"\n  Descriptive statistics (numeric):")
+    numeric_cols = [c for c in feature_cols if df[c].dtype in ('float64', 'int64')]
+    desc = df[numeric_cols].describe().to_string()
+    for line in desc.split('\n'):
+        print(f"    {line}")
+    print(f"\n  Class distribution:")
+    vc = df['is_churn'].value_counts()
+    vcp = df['is_churn'].value_counts(normalize=True)
+    for label in [0, 1]:
+        pct = vcp.get(label, 0) * 100
+        print(f"    {'No Churn' if label == 0 else 'Churn'}: {vc.get(label, 0):>5d}  ({pct:.1f}%)")
+    print(f"\n  Null counts (top 10):")
+    null_counts = df.isna().sum().sort_values(ascending=False)
+    null_cols = null_counts[null_counts > 0]
+    if len(null_cols) > 0:
+        for col in null_cols.index[:10]:
+            print(f"    {col}: {int(null_counts[col])} ({null_counts[col]/len(df)*100:.1f}%)")
+    else:
+        print(f"    (none)")
+    print(f"\n  Correlation with target (top 10):")
+    corrs = df[numeric_cols].corrwith(df['is_churn']).abs().sort_values(ascending=False)
+    for col in corrs.index[:10]:
+        r = df[numeric_cols].corrwith(df['is_churn'])[col]
+        print(f"    {col}: {r:.4f}")
+
+    # ── IQR Outlier Detection ───────────────────────────────
+    print(f"\n  [IQR] Detectando outliers por feature...")
+    n_before = len(df)
+    outlier_mask = pd.Series(False, index=df.index)
+    for col in numeric_cols:
+        if col in ('canal_WhatsApp', 'canal_Instagram', 'canal_Rappi', 'canal_PedidosYa', 'canal_Presencial'):
+            continue
+        Q1 = df[col].quantile(0.25)
+        Q3 = df[col].quantile(0.75)
+        IQR = Q3 - Q1
+        if IQR == 0:
+            continue
+        col_outliers = (df[col] < (Q1 - 1.5 * IQR)) | (df[col] > (Q3 + 1.5 * IQR))
+        outlier_mask = outlier_mask | col_outliers
+        n_out = col_outliers.sum()
+        if n_out > 0:
+            print(f"    {col}: {n_out} outliers ({n_out/len(df)*100:.1f}%)")
+    n_after = n_before - outlier_mask.sum()
+    print(f"  Filas antes: {n_before}, después de remover outliers: {n_after} ({n_before - n_after} eliminadas)")
+
     # ── 4. Preprocessing (imputation + scaling + split) ─────
     print("\n[4/7] Preprocessing pipeline...")
     feature_cols = [c for c in df.columns if c != 'is_churn']
@@ -772,6 +850,28 @@ def main():
     print(f"     Recall:    {best_metrics['recall']:.4f}")
     print(f"     F1:        {best_metrics['f1']:.4f}")
     print(f"     ROC-AUC:   {best_metrics['roc_auc']:.4f}")
+
+    # Classification report + Confusion matrix
+    y_pred_best = best_model_obj.predict(X_test if best_name != 'KNN_MM' else X_test_mm)
+    y_prob_best = best_model_obj.predict_proba(X_test if best_name != 'KNN_MM' else X_test_mm)[:, 1]
+    print(f"\n  Classification Report:")
+    print(f"  {'':>20} {'precision':>10} {'recall':>8} {'f1-score':>10} {'support':>10}")
+    for cls, (p, r, f, s) in enumerate(classification_report(y_test, y_pred_best, output_dict=True).values()):
+        if isinstance(p, dict):
+            continue
+        label = 'No Churn' if cls == 0 else 'Churn'
+        print(f"  {label:>20} {p:>10.4f} {r:>8.4f} {f:>10.4f} {s:>10.0f}")
+    avg = classification_report(y_test, y_pred_best, output_dict=True)['weighted avg']
+    print(f"  {'weighted avg':>20} {avg['precision']:>10.4f} {avg['recall']:>8.4f} {avg['f1-score']:>10.4f} {avg['support']:>10.0f}")
+    cm = confusion_matrix(y_test, y_pred_best)
+    tn, fp, fn, tp = cm.ravel()
+    print(f"\n  Confusion Matrix:")
+    print(f"                 {'Predicted':>25}")
+    print(f"                 {'No Churn':>10} {'Churn':>10}")
+    print(f"  Actual No Churn  {tn:>10} {fp:>10}")
+    print(f"         Churn     {fn:>10} {tp:>10}")
+    print(f"  True Negatives: {tn}, False Positives: {fp}")
+    print(f"  False Negatives: {fn}, True Positives: {tp}")
 
     # ── 6. Threshold calibration ────────────────────────────
     print(f"\n{'='*80}")
