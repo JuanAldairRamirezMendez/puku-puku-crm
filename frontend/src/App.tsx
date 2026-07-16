@@ -46,7 +46,7 @@ function LoginRoute() {
   );
 }
 
-export default function App() {
+function AppRoutes() {
   const verificarSesion = useStore((s) => s.verificarSesion);
   const verificando = useStore((s) => s.verificando);
 
@@ -65,11 +65,17 @@ export default function App() {
   }
 
   return (
+    <Routes>
+      <Route path="/login" element={<LoginRoute />} />
+      <Route path="/*" element={<ProtectedLayout />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<LoginRoute />} />
-        <Route path="/*" element={<ProtectedLayout />} />
-      </Routes>
+      <AppRoutes />
     </BrowserRouter>
   );
 }
