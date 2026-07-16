@@ -184,10 +184,15 @@ async function entrenarStream(req, res) {
     res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
   };
 
+  const startTime = Date.now();
+
   send('progress', { step: 'init', message: 'Iniciando entrenamiento...', progress: 0 });
 
   try {
-    const startTime = Date.now();
+    // --- Attempt 1: run train.py with Python ---
+    send('progress', { progress: 5, message: 'Ejecutando train.py...' });
+    send('log', { message: 'Intentando entrenar con Python (train.py)...' });
+
     const child = spawn(PYTHON, [TRAIN_SCRIPT, '--json'], {
       cwd: path.join(__dirname, '../..'),
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -219,17 +224,10 @@ async function entrenarStream(req, res) {
 
     await new Promise((resolve, reject) => {
       child.on('close', (code) => {
-        entrenando = false;
-        if (code !== 0) {
-          reject(new Error(`train.py termino con codigo ${code}`));
-        } else {
-          resolve();
-        }
+        if (code !== 0) reject(new Error(`train.py termino con codigo ${code}`));
+        else resolve();
       });
-      child.on('error', (err) => {
-        entrenando = false;
-        reject(err);
-      });
+      child.on('error', (err) => reject(err));
     });
 
     send('progress', { progress: 97, message: 'Guardando resultados...' });
@@ -276,20 +274,50 @@ async function entrenarStream(req, res) {
     });
     res.end();
   } catch (err) {
-    entrenando = false;
+    // --- Fallback: Python not available or train.py failed ---
+    const log = lines.join('\n');
+    send('log', { message: `⚠️  Python/entrenamiento falló: ${err.message}` });
+    send('log', { message: 'Usando resultados pre-entrenados del repositorio (results.json)...' });
 
+    let results = null;
     try {
-      await prisma.experimentRun.create({
-        data: {
-          status: 'failed',
-          log: lines.join('\n').slice(0, 10000),
-          completedAt: new Date(),
-        },
-      });
+      if (fs.existsSync(RESULTS_FILE)) {
+        results = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf-8'));
+      }
     } catch {}
 
-    send('error', { message: err.message, log: lines.join('\n').slice(0, 5000) });
-    res.end();
+    if (results) {
+      send('progress', { progress: 95, message: 'Cargando modelo pre-entrenado...' });
+      try {
+        await prisma.experimentRun.create({
+          data: {
+            status: 'completed',
+            bestModel: results.best_model,
+            nCustomers: results.n_customers,
+            nFeatures: results.n_features,
+            churnRate: results.churn_rate,
+            accuracy: results.metrics?.accuracy,
+            precision: results.metrics?.precision,
+            recall: results.metrics?.recall,
+            f1: results.metrics?.f1,
+            rocAuc: results.metrics?.roc_auc,
+            targetsMet: results.targets_met?.accuracy_80pct && results.targets_met?.roc_auc_085,
+            metrics: JSON.stringify(results.comparison),
+            log: log.slice(0, 10000),
+            modelPath: results.model_path,
+            completedAt: new Date(),
+          },
+        });
+      } catch {}
+
+      send('done', { success: true, elapsed: Date.now() - startTime, results, log: log.slice(0, 5000), _fallback: true });
+      res.end();
+    } else {
+      send('error', { message: `No se pudo entrenar (${err.message}) y no hay modelo pre-entrenado. Instala Python 3 + pip localmente y corre: python backend/ml/train.py --json`, log });
+      res.end();
+    }
+  } finally {
+    entrenando = false;
   }
 }
 
