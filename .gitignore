@@ -15,3 +15,6 @@ apf3/output/
 __pycache__/
 *.pyc
 
+
+*storybook.log
+storybook-static

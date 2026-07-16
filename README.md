@@ -1,53 +1,73 @@
-# Puku Puku CRM - Panel de Atencion Unificado
+# Puku Puku CRM — Panel de Atención Unificado
 
-Implementacion full-stack del prototipo disenado en el APF2 para LA CAPSULA S.A.C. / PUKU PUKU. El sistema complementa el piloto en HubSpot Free con una aplicacion propia basada en Express.js, PostgreSQL, Prisma y React.
+Sistema full-stack para LA CÁPSULA S.A.C. / PUKU PUKU. Complementa el piloto en HubSpot Free con aplicación propia basada en **Express.js + PostgreSQL + Prisma + React**.
+
+---
+
+## Stack
+
+| Capa     | Tecnología                                                                 |
+| -------- | -------------------------------------------------------------------------- |
+| Frontend | React 19, React Router 7, Zustand, react-i18next, Storybook 10, Vite      |
+| Backend  | Express.js, Prisma ORM, JWT, Jest, Morgan, ExcelJS                        |
+| BD       | PostgreSQL 16                                                              |
+| ML       | Python (scikit-learn, XGBoost, LightGBM), pipeline en `backend/ml/`        |
+| Infra    | Docker Compose (3 servicios), Nginx, PWA (manifest + service worker)       |
+
+---
 
 ## Estructura
 
-```text
-puku-puku-crm/
-├── docker-compose.yml      # PostgreSQL local
-├── backend/                # API REST Express + Prisma
-│   ├── prisma/schema.prisma
-│   ├── prisma/seed.js
-│   └── src/
-├── frontend/               # Pantallas del prototipo APF2
-│   └── src/
-└── checklist.md            # Pruebas manuales QA para APF3
 ```
+puku-puku-crm/
+├── docker-compose.yml         # PostgreSQL + API + Web (Nginx)
+├── backend/
+│   ├── prisma/schema.prisma
+│   ├── prisma/seed.js / seed-apf3.js
+│   ├── src/                   # Controladores, rutas, middleware
+│   └── ml/                    # Pipeline Python de churn prediction
+├── frontend/
+│   ├── public/
+│   │   ├── manifest.json      # PWA manifest
+│   │   ├── sw.js              # Service worker (cache-first)
+│   │   └── icons/             # SVG/PNG icons 192/512
+│   ├── src/
+│   │   ├── components/        # LoginForm, Navbar, Skeleton, etc.
+│   │   ├── pages/             # Pantalla1Registro, Pantalla2Historial, etc.
+│   │   ├── i18n/              # es.json, en.json, index.js
+│   │   ├── store/             # Zustand store
+│   │   ├── styles/            # theme.css (sistema de tokens)
+│   │   └── stories/           # Storybook stories
+│   └── .storybook/            # Configuración de Storybook
+├── apf3/                      # Pipeline académico APF3 (Python + Jupyter)
+├── docs/                      # Documentación de soporte
+└── scripts/                   # build-docker.ps1
+```
+
+---
 
 ## Requisitos
 
-- Node.js 18 o superior.
-- Docker Desktop iniciado.
-- Git.
+- Node.js 18+
+- Docker Desktop
+- Python 3.10+ (solo para ML)
+- Git
 
-En Windows PowerShell, si `npm` o `npx` se bloquean por politica de ejecucion, usar `npm.cmd` y `npx.cmd`.
+> En Windows PowerShell, si `npm` o `npx` se bloquean, usar `npm.cmd` y `npx.cmd`.
 
-## Configuracion inicial
+---
 
-### 1. Base de datos
+## Configuración inicial
+
+### 1. Base de datos + servicios (Docker)
 
 ```bash
 docker compose up -d
 ```
 
-Esto levanta PostgreSQL en `localhost:5432`.
+Levanta PostgreSQL (`:5432`), API (`:4000`) y Nginx (`:8080`).
 
-Si aparece un conflicto por un contenedor existente llamado `puku_puku_db`, actualizar el repositorio y volver a ejecutar el comando. El `docker-compose.yml` actual ya no fija `container_name`, para evitar choques entre copias locales del proyecto.
-
-Si el puerto `5432` ya esta ocupado por otro PostgreSQL local, detener ese servicio antes de levantar Docker. En Windows puede aparecer como `postgresql-x64-18 - PostgreSQL Server 18`.
-
-Como alternativa temporal, en PowerShell se puede levantar esta copia en otro puerto:
-
-```powershell
-$env:POSTGRES_PORT = "5433"
-docker compose up -d
-```
-
-En ese caso, cambiar tambien `DATABASE_URL` y `DIRECT_URL` en `backend/.env` para usar `localhost:5433`.
-
-### 2. Backend
+### 2. Backend (solo si no usas Docker)
 
 ```bash
 cd backend
@@ -58,16 +78,7 @@ npm run seed
 npm run dev
 ```
 
-API local: `http://localhost:4000`.
-
-Credenciales de prueba creadas por el seed:
-
-- Admin: `admin@pukupuku.pe` / `puku2026`
-- Colaborador: `carla@pukupuku.pe` / `puku2026`
-
 ### 3. Frontend
-
-En otra terminal:
 
 ```bash
 cd frontend
@@ -75,145 +86,154 @@ npm install
 npm run dev
 ```
 
-Interfaz local: `http://localhost:5173`.
+Interfaz local: `http://localhost:5173`. Con Docker: `http://localhost:8080`.
 
-## Verificacion rapida
+### Credenciales de prueba
+
+| Rol           | Email                 | Password  |
+| ------------- | --------------------- | --------- |
+| Administrador | admin@pukupuku.pe     | puku2026  |
+| Colaborador   | carla@pukupuku.pe     | puku2026  |
+
+---
+
+## Scripts disponibles
+
+### Frontend
+
+| Comando               | Descripción                            |
+| --------------------- | -------------------------------------- |
+| `npm run dev`         | Servidor de desarrollo Vite            |
+| `npm run build`       | Build producción                       |
+| `npm run preview`     | Vista previa del build                 |
+| `npm run storybook`   | Servidor de desarrollo Storybook       |
+| `npm run build:sb`    | Build estático de Storybook            |
+| `npx vitest`          | Pruebas unitarias (Vitest)             |
+| `npx vitest --project storybook` | Pruebas de accesibilidad desde stories |
+
+### Backend
+
+| Comando                    | Descripción                          |
+| -------------------------- | ------------------------------------ |
+| `npm run dev`              | Servidor con nodemon                 |
+| `npm test`                 | Tests Jest                           |
+| `npm run prisma:migrate`   | Ejecutar migraciones                 |
+| `npm run seed`             | Seed de prueba (2 clientes)          |
+| `npm run seed:apf3`        | Seed académico (150+ clientes)       |
+| `npm run ml:train`         | Entrenar modelo de churn local       |
+
+---
+
+## i18n — Internacionalización
+
+Soporte español (`es`) e inglés (`en`). Archivos en `frontend/src/i18n/`.
+
+- Cambio de idioma persistido en `localStorage` (`puku-lang`).
+- Switcher ES/EN en la barra de navegación.
+- Por defecto: español.
+
+---
+
+## PWA
+
+- `manifest.json` con nombre, íconos SVG (192/512) y theme-color `#c1502e`.
+- Service worker (`sw.js`) con estrategia **cache-first** para assets estáticos.
+- Instalable como aplicación de escritorio/móvil.
+
+---
+
+## Storybook
 
 ```bash
-cd backend
-npx prisma validate
-
-cd ../frontend
-npm run build
+cd frontend
+npm run storybook
 ```
 
-Validacion de integracion ejecutada en Codex para la rama de Peter:
+Components documentados: `LoginForm`, `Navbar`, `Skeleton`. Incluye addons de **a11y**, **docs** y **vitest**.
 
-- Docker Compose: PostgreSQL publicado en `localhost:5432`.
-- Prisma migrate: esquema sincronizado contra `127.0.0.1:5432`.
-- Seed: usuarios de prueba creados sin cambiar credenciales del equipo.
-- Backend: tests Jest `12/12` y smoke test de health/login/export CSV aprobados.
-- Frontend: `npm.cmd run build` aprobado.
-
-## Mapeo APF2 a codigo
-
-| Pantalla / flujo | Backend | Frontend |
-|---|---|---|
-| Login | `auth.controller.js` | `LoginForm.jsx` |
-| Pantalla 1 - Busqueda y registro | `clientes.controller.js` | `Pantalla1Registro.jsx` |
-| Pantalla 2 - Historial | `clientes.controller.js` | `Pantalla2Historial.jsx` |
-| Pantalla 3 - Cierre post-atencion | `interacciones.controller.js` | `Pantalla3PostAtencion.jsx` |
-| Reporte clientes frecuentes | `reportes.controller.js` | `PantallaFrecuentes.jsx` |
-| Dataset APF3 | `GET /api/reportes/export-apf3.csv` | Descarga CSV para notebook ML |
-
-## Cumplimiento Ley N. 29733
-
-- `POST /api/clientes` debe rechazar registros cuando `consentimientoLey29733 !== true`.
-- El consentimiento se registra con fecha para trazabilidad.
-- Las rutas protegidas usan JWT y control de rol.
-- `JWT_SECRET` y `DATABASE_URL` deben vivir solo en `.env` local o variables del servidor.
-- No se debe subir `backend/.env` al repositorio.
-
-## Variables de entorno
-
-Copiar `backend/.env.example` a `backend/.env` y ajustar:
-
-```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/puku_puku_crm?schema=public"
-DIRECT_URL="postgresql://postgres:postgres@localhost:5432/puku_puku_crm?schema=public"
-JWT_SECRET="reemplazar_por_un_secreto_largo_y_aleatorio"
-JWT_EXPIRES_IN="8h"
-CHURN_INACTIVITY_DAYS=30
+```bash
+npx vitest --project storybook   # Ejecuta tests de accesibilidad
 ```
 
-La contraseña `postgres` del compose y la clave `puku2026` del seed son valores locales de desarrollo. Para una demo publicada o produccion, deben reemplazarse.
+---
 
-## Machine Learning Pipeline
+## API — Endpoints principales
 
-### Producción — `backend/ml/`
+| Método | Ruta                          | Descripción                    | Auth     |
+| ------ | ----------------------------- | ------------------------------ | -------- |
+| POST   | `/api/auth/login`             | Iniciar sesión                 | Público  |
+| POST   | `/api/auth/register`          | Registrar colaborador          | Admin    |
+| GET    | `/api/clientes?q=`            | Buscar clientes                | Usuario  |
+| POST   | `/api/clientes`               | Crear cliente                  | Usuario  |
+| GET    | `/api/clientes/:id`           | Detalle + últimas interacciones | Usuario  |
+| POST   | `/api/interacciones`          | Registrar atención             | Usuario  |
+| GET    | `/api/reportes/frecuentes`    | Clientes frecuentes            | Usuario  |
+| GET    | `/api/reportes/analytics`     | KPIs + gráficos                | Usuario  |
+| GET    | `/api/reportes/export-apf3.csv` | Dataset para ML              | Usuario  |
+| POST   | `/api/reportes/entrenar`      | Entrenar modelo churn          | Admin/Gte|
+| GET    | `/api/auditoria`              | Logs de auditoría              | Admin    |
+| GET    | `/api/experimentos`           | Experimentos ML                | Admin    |
+| GET    | `/api/feature-store`          | Feature store                  | Admin    |
+| GET    | `/api/ab-test`                | Tests A/B                      | Admin    |
+| GET    | `/api/health`                 | Health check                   | Público  |
 
-La carpeta `backend/ml/` contiene el pipeline de producción para entrenamiento de modelos de churn desde la misma aplicación:
+---
 
-```
-backend/ml/
-├── train.py                # Pipeline completo: 11 modelos, 20+ features, exporta a JSON
-├── requirements.txt        # numpy, pandas, scikit-learn, xgboost, lightgbm, joblib
-└── output/                 # Modelos entrenados y artefactos
-    ├── model.json          # Mejor modelo exportado (GradientBoosting / RandomForest)
-    ├── scaler.json         # Parámetros de normalización
-    ├── features.json       # Nombres de features
-    ├── results.json        # Resultados del último entrenamiento
-    └── pipeline.pkl        # Pipeline completo (joblib)
-```
+## Machine Learning
 
-**Entrenamiento desde el frontend:** en la pantalla Analytics, sección "Entrenamiento ML — Churn Prediction", presionar "Entrenar modelo". El backend ejecuta `train.py` como subproceso y devuelve los resultados.
+### Pipeline de producción (`backend/ml/`)
 
-**Endpoint API:** `POST /api/reportes/entrenar` (requiere rol ADMINISTRADOR o GERENTE).
+Entrenamiento de 11 modelos (GradientBoosting, RandomForest, XGBoost, etc.) con 20+ features. Se ejecuta desde la pantalla Analytics del frontend o via `POST /api/reportes/entrenar`.
 
-**Consultar estado:** `GET /api/reportes/entrenar/status`.
+### Pipeline académico (`apf3/`)
 
-### Académico — `apf3/`
-
-La carpeta `apf3/` contiene el pipeline ejecutable para la consigna académica de APF3:
-
-```
-apf3/
-├── requirements.txt        # pandas, numpy, scikit-learn, matplotlib, seaborn, requests
-├── pipeline_apf3.py        # Script Python (ejecutable de inicio a fin)
-└── APF3.ipynb              # Jupyter Notebook (mismo pipeline, celdas documentadas)
-```
+Script Python y Jupyter Notebook para la consigna de APF3:
 
 ```bash
 cd apf3
 pip install -r requirements.txt
-
-# Opción 1: desde la API (backend corriendo en localhost:4000)
-python pipeline_apf3.py
-
-# Opción 2: desde archivo CSV local
-python pipeline_apf3.py --csv dataset_apf3_puku_puku.csv
-
-# Opción 3: Jupyter Notebook
-jupyter notebook APF3.ipynb
+python pipeline_apf3.py                  # desde API
+python pipeline_apf3.py --csv dataset.csv # desde CSV local
 ```
 
-## Dataset simulado para APF3
-
-El seed inicial (`npm run seed`) crea solo 2 clientes de prueba. Para generar un dataset de 150+ clientes con interacciones realistas, distribucion de canales, preferencias y etiquetas de churn (listo para el Paso 2 de APF3):
+### Dataset simulado
 
 ```bash
 cd backend
-npm run seed:apf3
+npm run seed:apf3   # 150+ clientes, ~20% churn, listo para modelado
 ```
 
-Esto puebla la base de datos con:
-- **150 clientes** con nombres, canales, productos favoritos y alergias variados
-- **3-12 interacciones por cliente** (promedio ~7), con fechas distribuidas en los ultimos 90 dias
-- **~20% con churn_label=1** (cliente inactivo >30 dias)
-- Casos realistas: clientes nuevos (0 interacciones), atenciones en seguimiento, pendientes y resueltas
-- 1 administrador y 7 colaboradores de prueba (clave `puku2026`)
+---
 
-> **Nota:** Si el dataset real de uso del sistema aun no alcanza 200 filas, el seed `seed-apf3.js` genera datos simulados complementarios. Este supuesto fue documentado en APF2 y sigue siendo valido para APF3. Declarar entre corchetes en el informe.
-
-El endpoint `GET /api/reportes/export-apf3.csv` reflejara automaticamente los nuevos datos.
-
-## Entregables APF3 relacionados
-
-- `checklist.md`: casos de prueba manual para login, consentimiento, atencion y CSV.
-- `docs/anexo-uso-ia-apf3.md`: declaracion de uso de IA lista para pegar en el informe.
-- `GET /api/reportes/export-apf3.csv`: dataset con columnas para modelado ML.
-
-## Flujo Git recomendado
+## Docker Compose
 
 ```bash
-git checkout dev
-git pull origin dev
-git checkout -b feature/peter-devops-qa
-
-# despues de validar y documentar
-git add README.md checklist.md docs/anexo-uso-ia-apf3.md docker-compose.yml .gitignore backend/.env.example
-git commit -m "docs(devops): agregar QA y documentacion APF3"
-git push origin feature/peter-devops-qa
+docker compose up -d --build
 ```
 
-Abrir Pull Request hacia `dev`. La validacion final hacia `main` debe ejecutarse cuando las ramas `Juan`, `camilo` y `renzo` esten integradas en `dev`.
+| Servicio   | Puerto | Base              |
+| ---------- | ------ | ----------------- |
+| `postgres` | 5432   | postgres:16-alpine |
+| `api`      | 4000   | node:22-bookworm-slim |
+| `web`      | 8080   | nginx:alpine      |
+
+Health checks implementados en los 3 servicios.
+
+---
+
+## Cumplimiento Ley N.° 29733
+
+- Consentimiento obligatorio (`consentimientoLey29733 === true`).
+- Trazabilidad con fecha de consentimiento.
+- JWT con control de rol.
+- `JWT_SECRET` y `DATABASE_URL` solo en `.env` local.
+
+---
+
+## Checklist
+
+Ver `checklist.md` para pruebas manuales QA.
+
+## Anexo IA
+
+Ver `docs/anexo-uso-ia-apf3.md` para declaración de uso de IA.

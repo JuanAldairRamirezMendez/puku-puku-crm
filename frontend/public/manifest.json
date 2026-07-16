@@ -1,0 +1,15 @@
+{
+  "name": "Puku Puku CRM",
+  "short_name": "Puku CRM",
+  "description": "Panel de atención unificado para la cadena de cafeterías Puku Puku",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#faf3ea",
+  "theme_color": "#c1502e",
+  "lang": "es",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

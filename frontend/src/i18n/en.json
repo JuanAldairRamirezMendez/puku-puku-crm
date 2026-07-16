@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "Puku Puku — Service Panel",
+    "subtitle": "CRM for Puku Puku coffee chain"
+  },
+  "nav": {
+    "buscar": "Search / Register",
+    "frecuentes": "Frequent customers",
+    "analytics": "Analytics",
+    "auditoria": "Audit Log",
+    "experimentos": "ML Experiments",
+    "featureStore": "Feature Store",
+    "abTest": "A/B Test",
+    "salir": "Log out"
+  },
+  "login": {
+    "titulo": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "ingresar": "Sign in",
+    "error": "Invalid credentials"
+  },
+  "buscar": {
+    "titulo": "Search or register customer",
+    "placeholder": "Search by phone or name…",
+    "nuevo": "New customer",
+    "telefono": "Phone",
+    "nombre": "Full name",
+    "guardar": "Save"
+  },
+  "cliente": {
+    "interacciones": "Interactions",
+    "churnScore": "Churn risk",
+    "productoFavorito": "Favorite product",
+    "sinInteracciones": "No registered interactions"
+  },
+  "analytics": {
+    "titulo": "APF3 Analytics",
+    "clientes": "Customers",
+    "interacciones": "Interactions",
+    "churnRate": "Churn rate",
+    "entrenar": "Train model",
+    "segmentar": "Segment"
+  },
+  "common": {
+    "cargando": "Loading…",
+    "error": "Error",
+    "sinDatos": "No data",
+    "anterior": "← Previous",
+    "siguiente": "Next →",
+    "cancelar": "Cancel",
+    "guardar": "Save"
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "app": {
+    "title": "Puku Puku — Panel de Atención",
+    "subtitle": "CRM para la cadena de cafeterías Puku Puku"
+  },
+  "nav": {
+    "buscar": "Buscar / Registrar",
+    "frecuentes": "Clientes frecuentes",
+    "analytics": "Analytics",
+    "auditoria": "Auditoría",
+    "experimentos": "Experimentos ML",
+    "featureStore": "Feature Store",
+    "abTest": "A/B Test",
+    "salir": "Salir"
+  },
+  "login": {
+    "titulo": "Iniciar sesión",
+    "email": "Correo electrónico",
+    "password": "Contraseña",
+    "ingresar": "Ingresar",
+    "error": "Credenciales inválidas"
+  },
+  "buscar": {
+    "titulo": "Buscar o registrar cliente",
+    "placeholder": "Buscar por teléfono o nombre…",
+    "nuevo": "Nuevo cliente",
+    "telefono": "Teléfono",
+    "nombre": "Nombre completo",
+    "guardar": "Guardar"
+  },
+  "cliente": {
+    "interacciones": "Interacciones",
+    "churnScore": "Riesgo de abandono",
+    "productoFavorito": "Producto favorito",
+    "sinInteracciones": "Sin interacciones registradas"
+  },
+  "analytics": {
+    "titulo": "Analytics APF3",
+    "clientes": "Clientes",
+    "interacciones": "Interacciones",
+    "churnRate": "Tasa de churn",
+    "entrenar": "Entrenar modelo",
+    "segmentar": "Segmentar"
+  },
+  "common": {
+    "cargando": "Cargando…",
+    "error": "Error",
+    "sinDatos": "Sin datos",
+    "anterior": "← Anterior",
+    "siguiente": "Siguiente →",
+    "cancelar": "Cancelar",
+    "guardar": "Guardar"
+  }
+}

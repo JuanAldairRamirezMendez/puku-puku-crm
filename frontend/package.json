@@ -8,12 +8,16 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "html2canvas": "^1.4.1",
+    "i18next": "^26.3.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-i18next": "^17.0.10",
     "react-router-dom": "^7.18.1",
     "zustand": "^5.0.14"
   },
@@ -27,6 +31,16 @@
     "jsdom": "^29.1.1",
     "typescript": "^7.0.2",
     "vite": "^5.4.1",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "storybook": "^10.5.0",
+    "@storybook/react-vite": "^10.5.0",
+    "@chromatic-com/storybook": "^5.2.1",
+    "@storybook/addon-vitest": "^10.5.0",
+    "@storybook/addon-a11y": "^10.5.0",
+    "@storybook/addon-docs": "^10.5.0",
+    "@storybook/addon-mcp": "^0.7.0",
+    "@vitest/browser-playwright": "4.1.10",
+    "@vitest/coverage-v8": "^4.1.10",
+    "playwright": "^1.61.1"
   }
 }
