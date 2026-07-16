@@ -2,10 +2,9 @@ const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 const { PrismaClient } = require('@prisma/client');
-const { ensureDeps, getPythonCommand } = require('../utils/predecirChurnPython');
 
 const prisma = new PrismaClient();
-const PYTHON = process.env.PYTHON_PATH || getPythonCommand();
+const PYTHON = process.env.PYTHON_PATH || 'python';
 const TRAIN_SCRIPT = path.join(__dirname, '../../ml/train.py');
 const OUTPUT_DIR = path.join(__dirname, '../../ml/output');
 const RESULTS_FILE = path.join(OUTPUT_DIR, 'results.json');
@@ -188,12 +187,6 @@ async function entrenarStream(req, res) {
   send('progress', { step: 'init', message: 'Iniciando entrenamiento...', progress: 0 });
 
   try {
-    send('progress', { progress: 2, message: 'Verificando dependencias de Python...' });
-    const depsOk = await ensureDeps(PYTHON);
-    if (!depsOk) {
-      throw new Error('No se pudieron instalar las dependencias de Python (numpy, pandas, scikit-learn, etc.)');
-    }
-
     const startTime = Date.now();
     const child = spawn(PYTHON, [TRAIN_SCRIPT, '--json'], {
       cwd: path.join(__dirname, '../..'),

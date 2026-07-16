@@ -29,6 +29,7 @@
     "prisma:studio": "prisma studio",
     "seed": "node prisma/seed.js",
     "seed:apf3": "node prisma/seed-apf3.js",
+    "postinstall": "python3 -m pip install -r ml/requirements.txt --quiet 2>/dev/null || python -m pip install -r ml/requirements.txt --quiet 2>/dev/null || echo '[ML] Python deps skipped'",
     "test": "jest --forceExit --detectOpenHandles"
   },
   "dependencies": {
