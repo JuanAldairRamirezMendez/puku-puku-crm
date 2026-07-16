@@ -8,6 +8,9 @@ const clientesRoutes = require('./routes/clientes.routes');
 const interaccionesRoutes = require('./routes/interacciones.routes');
 const reportesRoutes = require('./routes/reportes.routes');
 const auditRoutes = require('./routes/audit.routes');
+const experimentsRoutes = require('./routes/experiments.routes');
+const featureStoreRoutes = require('./routes/feature-store.routes');
+const abTestRoutes = require('./routes/ab-test.routes');
 const { health, healthDetailed } = require('./controllers/health.controller');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
 
@@ -29,6 +32,9 @@ app.use('/api/clientes', clientesRoutes);
 app.use('/api', interaccionesRoutes);
 app.use('/api/reportes', reportesRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/experimentos', experimentsRoutes);
+app.use('/api/feature-store', featureStoreRoutes);
+app.use('/api/ab-test', abTestRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -27,9 +27,20 @@ export default function Navbar() {
           Analytics
         </NavLink>
         {usuario?.rol === 'ADMINISTRADOR' && (
-          <NavLink to="/auditoria" className={({ isActive }) => isActive ? 'activo' : ''}>
-            Auditoría
-          </NavLink>
+          <>
+            <NavLink to="/auditoria" className={({ isActive }) => isActive ? 'activo' : ''}>
+              Auditoria
+            </NavLink>
+            <NavLink to="/experimentos" className={({ isActive }) => isActive ? 'activo' : ''}>
+              Experimentos ML
+            </NavLink>
+            <NavLink to="/feature-store" className={({ isActive }) => isActive ? 'activo' : ''}>
+              Feature Store
+            </NavLink>
+            <NavLink to="/ab-test" className={({ isActive }) => isActive ? 'activo' : ''}>
+              A/B Test
+            </NavLink>
+          </>
         )}
       </nav>
       <div className="sesion">

@@ -114,3 +114,101 @@ model AuditLog {
   @@index([createdAt])
   @@map("audit_logs")
 }
+
+/// ML Experiment Tracking — cada corrida de entrenamiento
+model ExperimentRun {
+  id           String   @id @default(uuid())
+  status       String   @default("running") // running, completed, failed
+  bestModel    String?
+  nCustomers   Int?
+  nFeatures    Int?
+  churnRate    Float?
+  accuracy     Float?
+  precision    Float?
+  recall       Float?
+  f1           Float?
+  rocAuc       Float?
+  targetsMet   Boolean?
+  metrics      String?  // JSON con comparativa de todos los modelos
+  parameters   String?  // JSON con hiperparámetros
+  log          String?
+  modelPath    String?
+  createdAt    DateTime @default(now())
+  completedAt  DateTime?
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("experiment_runs")
+}
+
+/// Feature Store — catálogo de features del ML pipeline
+model FeatureDefinition {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  category    String   @default("behavioral") // behavioral, monetary, temporal, demographic, channel
+  dataType    String   @default("numeric")    // numeric, categorical, boolean
+  source      String?  // "train.py", "manual"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  values      FeatureValue[]
+
+  @@map("feature_definitions")
+}
+
+/// Feature Value — valor calculado de una feature para un cliente
+model FeatureValue {
+  id         String   @id @default(uuid())
+  feature    FeatureDefinition @relation(fields: [featureId], references: [id], onDelete: Cascade)
+  featureId  String
+  clienteId  String
+  value      String   // valor serializado (float como string para precisión)
+  computedAt DateTime @default(now())
+
+  @@unique([featureId, clienteId])
+  @@index([clienteId])
+  @@index([featureId])
+  @@map("feature_values")
+}
+
+/// A/B experimento de modelos o estrategias
+model ExperimentTest {
+  id            String        @id @default(uuid())
+  name          String
+  description   String?
+  status        String        @default("draft")
+  targetMetric  String        @default("roc_auc")
+  createdBy     String?
+  createdAt     DateTime      @default(now())
+  startedAt     DateTime?
+  endedAt       DateTime?
+  variants      TestVariant[]
+  @@index([status])
+  @@map("experiment_tests")
+}
+
+model TestVariant {
+  id            String         @id @default(uuid())
+  experiment    ExperimentTest @relation(fields: [experimentId], references: [id], onDelete: Cascade)
+  experimentId  String
+  name          String
+  description   String?
+  trafficPct    Float          @default(50.0)
+  config        String?
+  assignments   TestAssign[]
+  createdAt     DateTime       @default(now())
+  @@map("test_variants")
+}
+
+model TestAssign {
+  id          String      @id @default(uuid())
+  variant     TestVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  variantId   String
+  clienteId   String
+  assignedAt  DateTime    @default(now())
+  converted   Boolean?
+  convertedAt DateTime?
+  @@unique([variantId, clienteId])
+  @@index([clienteId])
+  @@map("test_assigns")
+}

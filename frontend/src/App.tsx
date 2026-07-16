@@ -7,6 +7,9 @@ import Pantalla2Historial from './pages/Pantalla2Historial.jsx';
 import PantallaFrecuentes from './pages/PantallaFrecuentes.jsx';
 import PantallaAnalytics from './pages/PantallaAnalytics.jsx';
 import PantallaAuditoria from './pages/PantallaAuditoria.jsx';
+import PantallaExperimentos from './pages/PantallaExperimentos.jsx';
+import PantallaFeatureStore from './pages/PantallaFeatureStore.jsx';
+import PantallaABTest from './pages/PantallaABTest.jsx';
 import { useStore } from './store/index';
 import { SkeletonCard } from './components/Skeleton.jsx';
 
@@ -24,6 +27,9 @@ function ProtectedLayout() {
           <Route path="/frecuentes" element={<PantallaFrecuentes />} />
           <Route path="/analytics" element={<PantallaAnalytics />} />
           <Route path="/auditoria" element={<PantallaAuditoria />} />
+          <Route path="/experimentos" element={<PantallaExperimentos />} />
+          <Route path="/feature-store" element={<PantallaFeatureStore />} />
+          <Route path="/ab-test" element={<PantallaABTest />} />
         </Routes>
       </main>
     </div>

@@ -1,7 +1,9 @@
 const { spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { PrismaClient } = require('@prisma/client');
 
+const prisma = new PrismaClient();
 const PYTHON = process.env.PYTHON_PATH || 'python';
 const TRAIN_SCRIPT = path.join(__dirname, '../../ml/train.py');
 const OUTPUT_DIR = path.join(__dirname, '../../ml/output');
@@ -18,6 +20,8 @@ async function entrenar(req, res, next) {
   const lines = [];
 
   try {
+    const startTime = Date.now();
+
     await new Promise((resolve, reject) => {
       const child = spawn(PYTHON, [TRAIN_SCRIPT, '--json'], {
         cwd: path.join(__dirname, '../..'),
@@ -39,7 +43,7 @@ async function entrenar(req, res, next) {
       child.on('close', (code) => {
         entrenando = false;
         if (code !== 0) {
-          reject(new Error(`train.py terminó con código ${code}`));
+          reject(new Error(`train.py termino con codigo ${code}`));
         } else {
           resolve();
         }
@@ -52,13 +56,39 @@ async function entrenar(req, res, next) {
     });
 
     const log = lines.join('\n');
-
     let results = null;
     try {
       if (fs.existsSync(RESULTS_FILE)) {
         results = JSON.parse(fs.readFileSync(RESULTS_FILE, 'utf-8'));
       }
     } catch {}
+
+    // Persist experiment run
+    if (results) {
+      try {
+        await prisma.experimentRun.create({
+          data: {
+            status: 'completed',
+            bestModel: results.best_model,
+            nCustomers: results.n_customers,
+            nFeatures: results.n_features,
+            churnRate: results.churn_rate,
+            accuracy: results.metrics?.accuracy,
+            precision: results.metrics?.precision,
+            recall: results.metrics?.recall,
+            f1: results.metrics?.f1,
+            rocAuc: results.metrics?.roc_auc,
+            targetsMet: results.targets_met?.accuracy_80pct && results.targets_met?.roc_auc_085,
+            metrics: JSON.stringify(results.comparison),
+            log: log.slice(0, 10000),
+            modelPath: results.model_path,
+            completedAt: new Date(),
+          },
+        });
+      } catch (dbErr) {
+        console.error('Error al persistir experiment run:', dbErr.message);
+      }
+    }
 
     return res.json({
       success: true,
@@ -68,6 +98,18 @@ async function entrenar(req, res, next) {
     });
   } catch (err) {
     entrenando = false;
+
+    // Persist failed run
+    try {
+      await prisma.experimentRun.create({
+        data: {
+          status: 'failed',
+          log: lines.join('\n').slice(0, 10000),
+          completedAt: new Date(),
+        },
+      });
+    } catch {}
+
     const log = lines.join('\n');
     return res.status(500).json({
       error: `Error en entrenamiento: ${err.message}`,
