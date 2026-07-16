@@ -520,6 +520,8 @@ function Segmentacion() {
   const [resultado, setResultado] = useState(null);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState('');
+  const usuario = useStore((s) => s.usuario);
+  const puedeEntrenar = usuario?.rol === 'ADMINISTRADOR' || usuario?.rol === 'GERENTE';
 
   async function handleSegmentar() {
     setCargando(true);
