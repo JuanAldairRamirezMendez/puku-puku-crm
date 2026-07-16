@@ -427,10 +427,35 @@ async function reentrenarModelo(req, res, next) {
     fs.writeFileSync(csvPath, csv, 'utf-8');
 
     const result = await entrenarModelo();
+    const lines = result.stdout.split('\n');
+
+    // Parse the JSON summary from the last line (--json flag output)
+    let metrics = null;
+    for (let i = lines.length - 1; i >= 0; i--) {
+      const trimmed = lines[i].trim();
+      if (trimmed.startsWith('{')) {
+        try {
+          metrics = JSON.parse(trimmed);
+          break;
+        } catch {}
+      }
+    }
+
+    let bestMetrics = null;
+    if (metrics?.metrics) {
+      bestMetrics = metrics.metrics;
+    }
+
     return res.json({
       mensaje: 'Modelo reentrenado exitosamente.',
       clientes: data.length,
-      log: result.stdout.split('\n').filter((l) => l.startsWith('  >>') || l.includes('Accuracy') || l.includes('Guardado')).slice(0, 20),
+      best_model: metrics?.best_model || null,
+      metrics: bestMetrics,
+      targets_met: metrics?.targets_met || null,
+      n_customers: metrics?.n_customers || 0,
+      n_features: metrics?.n_features || 0,
+      churn_rate: metrics?.churn_rate || null,
+      log: lines,
     });
   } catch (err) {
     next(err);

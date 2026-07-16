@@ -299,15 +299,107 @@ function Heatmap({ data }) {
   );
 }
 
+function MetricasML({ metrics, bestModel }) {
+  if (!metrics) return null;
+  const cards = [
+    { label: 'F1 Score', valor: metrics.f1, color: 'var(--color-success)' },
+    { label: 'Precision', valor: metrics.precision, color: 'var(--color-terracotta)' },
+    { label: 'Recall', valor: metrics.recall, color: metrics.recall >= 0.95 ? 'var(--color-success)' : 'var(--color-warning)' },
+    { label: 'Accuracy', valor: metrics.accuracy, color: 'var(--color-brown-700)' },
+  ];
+
+  return (
+    <div>
+      <div className="ml-metricas-grid">
+        {cards.map((c) => (
+          <div key={c.label} className="card ml-metrica-card">
+            <span className="ml-metrica-valor" style={{ color: c.color }}>
+              {(c.valor * 100).toFixed(1)}%
+            </span>
+            <span className="ml-metrica-label">{c.label}</span>
+          </div>
+        ))}
+      </div>
+      {bestModel && (
+        <p style={{ fontSize: '0.82rem', color: 'var(--color-brown-700)', margin: '8px 0 0', textAlign: 'center' }}>
+          Modelo: <strong>{bestModel}</strong>
+        </p>
+      )}
+    </div>
+  );
+}
+
+function ProbabilidadChart({ probabilidad }) {
+  const pctChurn = probabilidad;
+  const pctActivo = 1 - probabilidad;
+  const barras = [
+    { label: 'Riesgo de abandono', pct: pctChurn, color: 'var(--color-danger)' },
+    { label: 'Activo', pct: pctActivo, color: 'var(--color-success)' },
+  ];
+
+  return (
+    <div className="ml-prob-chart">
+      <h4 style={{ fontFamily: 'var(--font-display)', fontSize: '0.92rem', margin: '0 0 12px', color: 'var(--color-brown-900)' }}>
+        Probabilidad estimada
+      </h4>
+      {barras.map((b) => (
+        <div key={b.label} className="ml-prob-fila">
+          <span className="ml-prob-etiqueta">{b.label}</span>
+          <div className="ml-prob-track">
+            <div
+              className="ml-prob-relleno"
+              style={{
+                width: `${Math.max(b.pct * 100, 2)}%`,
+                background: b.color,
+              }}
+            />
+          </div>
+          <span className="ml-prob-valor">{(b.pct * 100).toFixed(1)}%</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LogEntrenamiento({ lines, expanded, onToggle }) {
+  if (!lines || lines.length === 0) return null;
+  const visible = expanded ? lines : lines.slice(0, 30);
+  const hayMas = lines.length > 30 && !expanded;
+
+  return (
+    <div className="ml-log-wrapper">
+      <div className="ml-log-header">
+        <span className="ml-log-titulo">Salida de consola ({lines.length} líneas)</span>
+        {hayMas && (
+          <button className="btn-secundario" onClick={onToggle} style={{ fontSize: '0.75rem', padding: '4px 12px' }}>
+            Ver todo
+          </button>
+        )}
+        {expanded && (
+          <button className="btn-secundario" onClick={onToggle} style={{ fontSize: '0.75rem', padding: '4px 12px' }}>
+            Colapsar
+          </button>
+        )}
+      </div>
+      <pre className="ml-log-pre">
+        {visible.join('\n')}
+        {hayMas && '\n... y ' + (lines.length - 30) + ' líneas más'}
+      </pre>
+    </div>
+  );
+}
+
 function ModeloML() {
   const [entrenando, setEntrenando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [error, setError] = useState('');
+  const [logExpanded, setLogExpanded] = useState(false);
 
   async function handleEntrenar() {
     setEntrenando(true);
     setError('');
     setResultado(null);
+    setLogExpanded(false);
     try {
       const res = await api.entrenarModelo();
       setResultado(res);
@@ -325,30 +417,31 @@ function ModeloML() {
           <h3>Modelo ML — Predicción de Churn</h3>
           <div className="segmentacion-controls">
             <button className="btn-principal" onClick={handleEntrenar} disabled={entrenando}>
-              {entrenando ? 'Entrenando...' : 'Entrenar modelo con datos del CRM'}
+              {entrenando ? 'Entrenando…' : 'Entrenar modelo'}
             </button>
           </div>
         </div>
 
         {error && <div className="error-msg">{error}</div>}
 
-        {resultado && (
+        {resultado && resultado.metrics && (
           <>
             <p style={{ fontSize: '0.82rem', color: 'var(--color-brown-700)', margin: '10px 0 16px' }}>
-              Modelo entrenado con {resultado.clientes} clientes · {resultado.mensaje}
+              Entrenado con {resultado.clientes} clientes · {resultado.n_customers || resultado.clientes} muestras sintéticas · {resultado.n_features} features
             </p>
-            {resultado.log && resultado.log.length > 0 && (
-              <pre style={{ fontSize: '0.75rem', background: '#f5ede4', padding: 12, borderRadius: 6, maxHeight: 200, overflow: 'auto' }}>
-                {resultado.log.join('\n')}
-              </pre>
-            )}
+            <MetricasML metrics={resultado.metrics} bestModel={resultado.best_model} />
+            {resultado.churn_rate != null && <ProbabilidadChart probabilidad={resultado.churn_rate} />}
           </>
+        )}
+
+        {resultado && resultado.log && resultado.log.length > 0 && (
+          <LogEntrenamiento lines={resultado.log} expanded={logExpanded} onToggle={() => setLogExpanded((v) => !v)} />
         )}
 
         {!resultado && !error && !entrenando && (
           <p className="sin-datos" style={{ marginTop: 12 }}>
-            Entrena el modelo de Regresión Logística con los datos actuales del CRM para predecir riesgo de abandono.
-            Una vez entrenado, aparecerá en la ficha de cada cliente.
+            Entrena el modelo de ML con los datos actuales del CRM para predecir riesgo de abandono.
+            Una vez entrenado, las predicciones aparecerán en la ficha de cada cliente.
           </p>
         )}
       </div>

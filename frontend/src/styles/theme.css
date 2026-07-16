@@ -789,6 +789,121 @@ p.subtitulo-pantalla {
   text-decoration: underline;
 }
 
+/* --- ML Model Dashboard --- */
+.ml-metricas-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+@media (max-width: 600px) {
+  .ml-metricas-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.ml-metrica-card {
+  text-align: center;
+  padding: 14px 8px;
+}
+
+.ml-metrica-card + .ml-metrica-card {
+  margin-top: 0;
+}
+
+.ml-metrica-valor {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  display: block;
+  line-height: 1.2;
+}
+
+.ml-metrica-label {
+  font-size: 0.7rem;
+  color: var(--color-brown-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+/* Probability bar chart */
+.ml-prob-chart {
+  margin-bottom: 18px;
+}
+
+.ml-prob-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.ml-prob-etiqueta {
+  width: 140px;
+  flex-shrink: 0;
+  font-size: 0.82rem;
+  color: var(--color-brown-700);
+  text-align: right;
+}
+
+.ml-prob-track {
+  flex: 1;
+  height: 22px;
+  background: var(--color-sand);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.ml-prob-relleno {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.5s ease;
+  min-width: 4px;
+}
+
+.ml-prob-valor {
+  width: 48px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-brown-900);
+  flex-shrink: 0;
+}
+
+/* Training log */
+.ml-log-wrapper {
+  margin-top: 12px;
+}
+
+.ml-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.ml-log-titulo {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-brown-700);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ml-log-pre {
+  font-size: 0.72rem;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 14px;
+  border-radius: 8px;
+  max-height: 360px;
+  overflow: auto;
+  line-height: 1.5;
+  font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+}
+
 /* --- Filtros Analytics --- */
 .filtros-analytics {
   display: flex;

@@ -668,6 +668,7 @@ def main():
         },
         'n_customers': n_customers,
         'n_features': len(feature_cols),
+        'churn_rate': round(float(churn_rate), 4),
         'model_path': str(model_json_path),
         'comparison': results,
     }
