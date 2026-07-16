@@ -153,4 +153,4 @@ function modeloExiste() {
   return fs.existsSync(MODEL_JSON);
 }
 
-module.exports = { predecirChurn, predecirBatch, entrenarModelo, modeloExiste };
+module.exports = { predecirChurn, predecirBatch, entrenarModelo, modeloExiste, ensureDeps, getPythonCommand };
