@@ -16,8 +16,16 @@ const { errorHandler, notFound } = require('./middleware/errorHandler');
 
 const app = express();
 
+const corsOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',').map(s => s.trim());
+const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  origin: (origin, cb) => {
+    if (!origin) return cb(null, true);
+    if (isProduction && !corsOrigins.includes(origin)) {
+      return cb(new Error('Not allowed by CORS'));
+    }
+    return cb(null, true);
+  },
   credentials: true,
 }));
 app.use(express.json());
