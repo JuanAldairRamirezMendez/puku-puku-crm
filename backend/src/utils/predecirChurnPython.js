@@ -1,16 +1,48 @@
-const { execFile } = require('child_process');
+const { execFile, execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
 const ML_DIR = path.resolve(__dirname, '../../ml');
+const APF3_DIR = path.resolve(__dirname, '../../../apf3');
 const PREDICT_SCRIPT = path.join(ML_DIR, 'predecir_churn.py');
 const MODEL_DIR = path.join(ML_DIR, 'output');
 const MODEL_JSON = path.join(MODEL_DIR, 'model.json');
+const ML_REQS = path.join(ML_DIR, 'requirements.txt');
+const APF3_REQS = path.join(APF3_DIR, 'requirements.txt');
 
 function getPythonCommand() {
   if (process.env.GRAPHIFY_PYTHON) return process.env.GRAPHIFY_PYTHON;
-  try { require('child_process').execSync('python3 --version', { stdio: 'ignore' }); return 'python3'; }
+  try { execSync('python3 --version', { stdio: 'ignore' }); return 'python3'; }
   catch { return 'python'; }
+}
+
+async function pipInstall(python, reqFile, label) {
+  return new Promise((resolve) => {
+    execFile(python, ['-m', 'pip', 'install', '--break-system-packages', '-r', reqFile], {
+      timeout: 120000,
+      env: { ...process.env, PIP_ROOT_USER_ACTION: 'ignore' },
+    }, (err) => {
+      if (!err) return resolve(true);
+      execFile(python, ['-m', 'pip', 'install', '--user', '-r', reqFile], {
+        timeout: 120000,
+      }, (err2) => resolve(!err2));
+    });
+  });
+}
+
+async function ensureDeps(python) {
+  // Fast check: try importing everything train.py needs
+  const check = await new Promise((resolve) => {
+    execFile(python, ['-c', 'import numpy,pandas,sklearn,xgboost,lightgbm,joblib'], (err) => resolve(!err));
+  });
+  if (check) return true;
+  console.log('[ML] Installing Python dependencies...');
+  const apf3Ok = await pipInstall(python, APF3_REQS, 'APF3');
+  const mlOk = await pipInstall(python, ML_REQS, 'ML');
+  const ok = apf3Ok || mlOk;
+  if (ok) console.log('[ML] Dependencies installed');
+  else console.error('[ML] Failed to install Python dependencies');
+  return ok;
 }
 
 async function predecirChurn(input) {
@@ -71,37 +103,50 @@ async function predecirBatch(clientes) {
 }
 
 async function entrenarModelo() {
-  // Intentar entrenar con Python. Si falla (pip no instalado), usar modelo pre-entrenado.
   const python = getPythonCommand();
-  try {
-    await new Promise((resolve, reject) => {
-      const pipeline = path.join(ML_DIR, 'train.py');
-      execFile(python, [pipeline, '--json'], {
-        cwd: ML_DIR,
-        maxBuffer: 1024 * 1024 * 50,
-        env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
-        timeout: 300000,
-      }, (err, stdout, stderr) => {
-        if (err) {
-          const detail = stderr ? `: ${stderr.trim().slice(0, 500)}` : '';
-          return reject(new Error(`Error entrenando modelo: ${err.message}${detail}`));
-        }
-        resolve({ stdout, stderr });
-      });
+  const pipeline = path.join(ML_DIR, 'train.py');
+
+  // Try training directly first
+  const tryTrain = () => new Promise((resolve, reject) => {
+    execFile(python, [pipeline, '--json'], {
+      cwd: ML_DIR,
+      maxBuffer: 1024 * 1024 * 50,
+      env: { ...process.env, PYTHONIOENCODING: 'utf-8' },
+      timeout: 300000,
+    }, (err, stdout, stderr) => {
+      if (err) return reject(err);
+      resolve({ stdout, stderr, _fallback: false });
     });
-  } catch (err) {
-    // Si falló por entorno Python, usar el modelo pre-entrenado del repo
-    if (fs.existsSync(MODEL_JSON)) {
-      const stats = fs.statSync(MODEL_JSON);
-      console.warn(`[ML] Training fallback: usando modelo pre-entrenado (${new Date(stats.mtime).toISOString()})`);
-      return {
-        stdout: `[ML] Usando modelo pre-entrenado del repositorio. Para entrenar con datos reales, instala Python 3 + pip y ejecuta: python backend/ml/train.py\n`,
-        stderr: '',
-        _fallback: true,
-      };
+  });
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      return await tryTrain();
+    } catch (err) {
+      if (attempt === 0) {
+        console.log(`[ML] Training failed (${err.message.slice(0, 80)}). Installing deps and retrying...`);
+        const depsOk = await ensureDeps(python);
+        if (!depsOk) break;
+        // retry
+      } else {
+        break;
+      }
     }
-    throw err;
   }
+
+  // Fallback: pre-trained model
+  if (fs.existsSync(MODEL_JSON)) {
+    const mtime = fs.statSync(MODEL_JSON).mtime;
+    console.warn(`[ML] Using pre-trained model from ${mtime.toISOString()}`);
+    return {
+      stdout: '',
+      stderr: '',
+      _fallback: true,
+      _fallback_mtime: mtime.toISOString(),
+    };
+  }
+
+  throw new Error('Python no disponible y no hay modelo pre-entrenado. Instala Python 3 + pip.');
 }
 
 function modeloExiste() {

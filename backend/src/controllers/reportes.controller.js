@@ -427,27 +427,34 @@ async function reentrenarModelo(req, res, next) {
     fs.writeFileSync(csvPath, csv, 'utf-8');
 
     const result = await entrenarModelo();
-    const lines = result.stdout.split('\n');
-
-    // Parse the JSON summary from the last line (--json flag output)
+    let lines = [];
     let metrics = null;
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const trimmed = lines[i].trim();
-      if (trimmed.startsWith('{')) {
-        try {
-          metrics = JSON.parse(trimmed);
-          break;
-        } catch {}
-      }
-    }
-
     let bestMetrics = null;
-    if (metrics?.metrics) {
-      bestMetrics = metrics.metrics;
+
+    if (result._fallback) {
+      // Pre-trained model — try reading existing results.json for metrics
+      const resultsPath = path.join(__dirname, '../../ml/output/results.json');
+      try {
+        const existing = JSON.parse(fs.readFileSync(resultsPath, 'utf-8'));
+        metrics = existing;
+        bestMetrics = existing.metrics || null;
+      } catch {}
+    } else {
+      lines = result.stdout.split('\n');
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const trimmed = lines[i].trim();
+        if (trimmed.startsWith('{')) {
+          try {
+            metrics = JSON.parse(trimmed);
+            break;
+          } catch {}
+        }
+      }
+      bestMetrics = metrics?.metrics || null;
     }
 
     return res.json({
-      mensaje: 'Modelo reentrenado exitosamente.',
+      mensaje: result._fallback ? 'Usando modelo pre-entrenado (Python no disponible en el servidor)' : 'Modelo entrenado exitosamente',
       clientes: data.length,
       best_model: metrics?.best_model || null,
       metrics: bestMetrics,
@@ -455,6 +462,7 @@ async function reentrenarModelo(req, res, next) {
       n_customers: metrics?.n_customers || 0,
       n_features: metrics?.n_features || 0,
       churn_rate: metrics?.churn_rate || null,
+      _fallback: result._fallback || false,
       log: lines,
     });
   } catch (err) {

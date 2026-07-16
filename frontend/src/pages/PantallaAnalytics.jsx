@@ -385,20 +385,25 @@ function ModeloML() {
       const res = await api.entrenarModelo();
       setResultado(res);
 
-      console.group('🧠 Puku Puku — Entrenamiento ML');
-      console.log('Resumen:', { clientes: res.clientes, muestras: res.n_customers, features: res.n_features, modelo: res.best_model, churn_rate: res.churn_rate });
-      if (res.metrics) {
-        console.table([
-          { Métrica: 'F1 Score',   Valor: res.metrics.f1 },
-          { Métrica: 'Precision',  Valor: res.metrics.precision },
-          { Métrica: 'Recall',     Valor: res.metrics.recall },
-          { Métrica: 'Accuracy',   Valor: res.metrics.accuracy },
-          { Métrica: 'ROC-AUC',    Valor: res.metrics.roc_auc },
-        ]);
+      if (res._fallback) {
+        console.warn('⚠️  Python no disponible en el servidor. Usando modelo pre-entrenado del repositorio.');
+        console.log('Para entrenar en local: python backend/ml/train.py');
+      } else {
+        console.group('🧠 Puku Puku — Entrenamiento ML');
+        console.log('Resumen:', { clientes: res.clientes, muestras: res.n_customers, features: res.n_features, modelo: res.best_model, churn_rate: res.churn_rate });
+        if (res.metrics) {
+          console.table([
+            { Métrica: 'F1 Score',   Valor: res.metrics.f1 },
+            { Métrica: 'Precision',  Valor: res.metrics.precision },
+            { Métrica: 'Recall',     Valor: res.metrics.recall },
+            { Métrica: 'Accuracy',   Valor: res.metrics.accuracy },
+            { Métrica: 'ROC-AUC',    Valor: res.metrics.roc_auc },
+          ]);
+        }
+        if (res.targets_met) console.log('Targets:', res.targets_met);
+        if (res.log?.length > 0) console.log(`Log (${res.log.length} líneas):`, res.log.join('\n'));
+        console.groupEnd();
       }
-      if (res.targets_met) console.log('Targets:', res.targets_met);
-      if (res.log?.length > 0) console.log(`Log (${res.log.length} líneas):`, res.log.join('\n'));
-      console.groupEnd();
     } catch (err) {
       console.error('❌ Error entrenando modelo:', err);
       setError(err.message);
